@@ -8,7 +8,7 @@ Cada rota mostra o método, o caminho, quem pode chamar (público, cliente, empr
 
 | O quê | Onde |
 |---|---|
-| **Documentação publicada (GitHub Pages)** | [Link do Pages](https://livia2710.github.io/docsMindU/) |
+| **Documentação publicada (GitHub Pages)** | [Link da Documentação](https://docsmindu.vercel.app/) |
 | **Repositório da API (backend)** | [Link do Repositório](https://github.com/Livia2710/javaMindU.git) |
 | **API em produção (Web)** | https://mindu-api.onrender.com |
 
