@@ -6,120 +6,48 @@
 <title>API MindU — Documentação</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#F6F4EF; --panel:#FFFFFF; --ink:#1C2321; --muted:#5B665F;
-    --line:#E3E0D6; --accent:#2F6F63; --accent-ink:#F6F4EF;
-    --get:#2F6F63; --post:#3B5BA9; --put:#A6740A; --patch:#7C5CBF; --delete:#B23A48;
-    --code-bg:#1C2321; --code-ink:#EDEBE3;
-    font-family: 'Inter', sans-serif;
-  }
-  *{box-sizing:border-box}
-  body{margin:0; background:var(--bg); color:var(--ink); line-height:1.5;}
-  h1,h2,h3{font-family:'Source Serif 4', serif; font-weight:600; margin:0;}
-  code, pre, .mono{font-family:'JetBrains Mono', monospace;}
-  a{color:var(--accent)}
-
-  .topbar{position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:16px;
-    padding:14px 24px; background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap;}
-  .topbar h1{font-size:1.15rem;}
-  .topbar .sub{color:var(--muted); font-size:.85rem;}
-  .spacer{flex:1}
-  .env-toggle{display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
-  .env-toggle button{border:none; background:var(--panel); padding:7px 14px; font:inherit; font-size:.85rem; cursor:pointer; color:var(--muted);}
-  .env-toggle button.active{background:var(--accent); color:var(--accent-ink);}
-  .dl{display:flex; gap:8px;}
-  .dl a{border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:.85rem; text-decoration:none; color:var(--ink); background:var(--panel);}
-  .dl a:hover{border-color:var(--accent); color:var(--accent);}
-
-  .layout{display:flex; max-width:1180px; margin:0 auto;}
-  nav.side{width:220px; flex-shrink:0; padding:28px 16px; position:sticky; top:57px; align-self:flex-start; height:calc(100vh - 57px); overflow-y:auto;}
-  nav.side a{display:block; padding:6px 10px; border-radius:6px; color:var(--muted); text-decoration:none; font-size:.9rem;}
-  nav.side a:hover{background:var(--line);}
-  nav.side .grp{font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:18px 0 4px 10px;}
-  nav.side .grp:first-child{margin-top:0;}
-
-  main{flex:1; padding:28px 24px 80px; min-width:0;}
-  .intro{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:28px;}
-  .intro p{margin:.6em 0; max-width:70ch;}
-  .intro h2{font-size:1.3rem; margin-bottom:10px;}
-
-  section.resource{margin-bottom:36px;}
-  section.resource > h2{font-size:1.4rem; margin-bottom:4px; padding-bottom:8px; border-bottom:2px solid var(--accent);}
-
-  .route{background:var(--panel); border:1px solid var(--line); border-radius:10px; margin-top:12px; overflow:hidden;}
-  .route > button.head{width:100%; display:flex; align-items:center; gap:12px; padding:14px 16px; background:none; border:none; cursor:pointer; text-align:left; font:inherit;}
-  .badge{font-size:.72rem; font-weight:600; padding:3px 9px; border-radius:5px; color:#fff; font-family:'JetBrains Mono',monospace; letter-spacing:.02em; flex-shrink:0; width:58px; text-align:center;}
-  .badge.get{background:var(--get)} .badge.post{background:var(--post)}
-  .badge.put{background:var(--put)} .badge.patch{background:var(--patch)} .badge.delete{background:var(--delete)}
-  .route .path{font-family:'JetBrains Mono',monospace; font-size:.92rem; flex-shrink:0;}
-  .route .desc{color:var(--muted); font-size:.87rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .route .auth-pill{font-size:.72rem; color:var(--muted); border:1px solid var(--line); border-radius:20px; padding:2px 10px; flex-shrink:0;}
-  .chev{transition:transform .15s; color:var(--muted); flex-shrink:0;}
-  .route.open .chev{transform:rotate(90deg);}
-  .route .body{display:none; padding:0 18px 20px; border-top:1px solid var(--line);}
-  .route.open .body{display:block;}
-  .route .body p.d{color:var(--muted); margin:14px 0 6px; font-size:.92rem;}
-
-  .tabs{display:flex; gap:2px; margin:14px 0 0; background:var(--bg); border-radius:8px; padding:3px; width:fit-content;}
-  .tabs button{border:none; background:none; padding:6px 14px; font:inherit; font-size:.83rem; border-radius:6px; cursor:pointer; color:var(--muted);}
-  .tabs button.active{background:var(--panel); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08);}
-  .panel{display:none;}
-  .panel.active{display:block;}
-  pre{background:var(--code-bg); color:var(--code-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.82rem; margin:8px 0 0; line-height:1.55;}
-  .url-line{font-family:'JetBrains Mono',monospace; font-size:.85rem; background:var(--bg); border-radius:6px; padding:8px 12px; margin-top:10px; overflow-x:auto; white-space:nowrap;}
-  .url-line .m{font-weight:600;}
-
-  .setup{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin-bottom:28px;}
-  .setup h3{font-size:1.05rem; margin-bottom:8px;}
-  .setup .tabs{margin-top:2px;}
-
-  footer{max-width:1180px; margin:0 auto; padding:20px 24px 60px; color:var(--muted); font-size:.85rem;}
-
-  @media (max-width: 860px){
-    nav.side{display:none;}
-    .route .desc{display:none;}
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
 </head>
 <body>
 
-<div class="topbar">
-  <h1>MindU · API</h1>
-  <span class="sub">Documentação para integração — Sabrina (React) e Manoela (Android)</span>
-  <div class="spacer"></div>
-  <div class="env-toggle" role="group" aria-label="Ambiente">
-    <button id="env-local" class="active" onclick="setEnv('local')">Local</button>
-    <button id="env-web" onclick="setEnv('web')">Web</button>
-  </div>
-  <div class="dl">
-    <a href="mindu-modelagem.html" download>↓ Artefato de modelagem</a>
-    <a href="mindu-postman-collection.json" download>↓ Coleção Postman</a>
-  </div>
-</div>
-
-<div class="layout">
-<nav class="side" id="sidenav"></nav>
-<main>
-
-  <div class="intro">
-    <h2>Como usar esta página</h2>
-    <p>Cada rota abaixo abre com um clique e mostra a requisição, a resposta e um exemplo de código pronto — uma aba para o site (React) e outra para o app (Android). Use o seletor <strong>Local / Web</strong> no topo para trocar o endereço em todos os exemplos de uma vez.</p>
-    <p><strong>Local:</strong> <code>http://localhost:8080</code> — precisa do backend rodando no seu computador (<code>docker compose up</code>).<br>
-    <strong>Web:</strong> <code id="web-url-display">https://mindu-api.onrender.com</code> — sempre disponível, mas pode levar até 1 minuto para responder na primeira chamada do dia (o serviço "dorme" quando fica sem uso).</p>
-    <p>Toda rota, exceto as marcadas <span class="auth-pill">público</span>, exige o cabeçalho <code>Authorization: Bearer &lt;token&gt;</code>, obtido no login.</p>
-  </div>
-
-  <div class="setup">
-    <h3>Configuração inicial</h3>
-    <div class="tabs" data-setuptabs>
-      <button class="active" data-tab="react">React (Sabrina)</button>
-      <button data-tab="android">Android (Manoela)</button>
+  <div class="topbar">
+    <h1>MindU · API</h1>
+    <div class="spacer"></div>
+    <div class="env-toggle" role="group" aria-label="Ambiente">
+      <button id="env-local" class="active" data-env="local">Local</button>
+      <button id="env-web" data-env="web">Web</button>
     </div>
-    <div class="panel active" data-panel="react">
-      <p style="color:var(--muted); font-size:.87rem; margin:10px 0 0;">Um helper único que já resolve a URL e o token. Crie em <code>src/api.js</code>:</p>
-      <pre><code>const BASE_URL = "<span class="baseurl">http://localhost:8080</span>"; // troque para a URL Web ao publicar
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
+    <div class="dl">
+      <a href="/docs/mindu-modelagem.html" download>↓ Artefato de modelagem</a>
+      <a href="/docs/mindu-postman-collection.json" download>↓ Coleção Postman</a>
+      <a id="req-route" href="#" target="_blank" rel="noopener">＋ Pedir nova rota</a>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="side" id="sidenav"></nav>
+    <main>
+
+      <div class="intro">
+        <h2>Como usar esta página</h2>
+        <p>Cada rota abaixo abre com um clique e mostra a requisição, a resposta e um exemplo de código pronto — uma aba para o site (React) e outra para o app (Android). Use o seletor <strong>Local / Web</strong> no topo para trocar o endereço em todos os exemplos de uma vez.</p>
+        <p><strong>Local:</strong> <code>http://localhost:8080</code> — precisa do backend rodando no seu computador (<code>docker compose up</code>).<br>
+        <strong>Web:</strong> <code id="web-url-display">https://mindu-api.onrender.com</code> — sempre disponível, mas pode levar até 1 minuto para responder na primeira chamada do dia (o serviço "dorme" quando fica sem uso).</p>
+        <p>Toda rota, exceto as marcadas <span class="auth-pill">público</span>, exige o cabeçalho <code>Authorization: Bearer &lt;token&gt;</code>, obtido no login.</p>
+      </div>
+
+      <div class="setup">
+        <h3>Configuração inicial</h3>
+        <div class="tabs" data-setuptabs>
+          <button class="active" data-tab="react">React (Sabrina)</button>
+          <button data-tab="android">Android (Manoela)</button>
+        </div>
+        <div class="panel active" data-panel="react">
+          <p class="setup-note">Um helper único que já resolve a URL e o token. Crie em <code>src/api.js</code>:</p>
+          <pre><code>const BASE_URL = "<span class="baseurl">http://localhost:8080</span>"; // troque para a URL Web ao publicar
 
 export function getToken() {
   return localStorage.getItem("mindu_token");
@@ -143,13 +71,13 @@ export async function api(path, { method = "GET", body, isFormData = false } = {
   }
   return res.status === 204 ? null : res.json();
 }</code></pre>
-    </div>
-    <div class="panel" data-panel="android">
-      <p style="color:var(--muted); font-size:.87rem; margin:10px 0 0;">Adicione ao <code>build.gradle</code> (module: app):</p>
-      <pre><code>implementation("com.squareup.retrofit2:retrofit:2.11.0")
+        </div>
+        <div class="panel" data-panel="android">
+          <p class="setup-note">Adicione ao <code>build.gradle</code> (module: app):</p>
+          <pre><code>implementation("com.squareup.retrofit2:retrofit:2.11.0")
 implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")</code></pre>
-      <p style="color:var(--muted); font-size:.87rem; margin:14px 0 0;"><code>RetrofitClient.java</code> — monta o cliente e injeta o token salvo:</p>
+      <p class="setup-note setup-note-spaced"><code>RetrofitClient.java</code> — monta o cliente e injeta o token salvo:</p>
       <pre><code>public class RetrofitClient {
     private static final String BASE_URL = "<span class="baseurl">http://10.0.2.2:8080</span>/"; // emulador -> localhost da máquina
     private static Retrofit retrofit;
@@ -176,249 +104,16 @@ implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")</code></pre>
         return retrofit;
     }
 }</code></pre>
-      <p style="color:var(--muted); font-size:.85rem; margin:10px 0 0;">No emulador Android, <code>10.0.2.2</code> aponta para o <code>localhost</code> do seu PC. Em um celular físico na mesma rede, use o IP local da máquina (ex.: <code>192.168.x.x</code>) em vez disso — a URL Web funciona igual nos dois casos.</p>
-      <p style="color:var(--muted); font-size:.87rem; margin:14px 0 0;">Cada rota abaixo mostra só o método da interface <code>ApiService</code> e a chamada — adicione o método correspondente à sua interface conforme for implementando.</p>
-    </div>
+          <p class="setup-note setup-note-compact">No emulador Android, <code>10.0.2.2</code> aponta para o <code>localhost</code> do seu PC. Em um celular físico na mesma rede, use o IP local da máquina (ex.: <code>192.168.x.x</code>) em vez disso — a URL Web funciona igual nos dois casos.</p>
+          <p class="setup-note setup-note-spaced">Cada rota abaixo mostra só o método da interface <code>ApiService</code> e a chamada — adicione o método correspondente à sua interface conforme for implementando.</p>
+        </div>
+      </div>
+
+      <div id="routes"></div>
+    </main>
   </div>
 
-  <div id="routes"></div>
-</main>
-</div>
+  <footer>MindU — documentação gerada para a equipe de desenvolvimento. Dúvidas sobre uma rota: confira o comportamento real na coleção do Postman.</footer>
 
-<footer>MindU — documentação gerada para a equipe de desenvolvimento. Dúvidas sobre uma rota: confira o comportamento real na coleção do Postman.</footer>
-
-<script>
-const ENV = {
-  local: "http://localhost:8080",
-  web: "https://mindu-api.onrender.com"
-};
-const ANDROID_LOCAL = "http://10.0.2.2:8080";
-let currentEnv = "local";
-
-function setEnv(env){
-  currentEnv = env;
-  document.getElementById("env-local").classList.toggle("active", env === "local");
-  document.getElementById("env-web").classList.toggle("active", env === "web");
-  const url = env === "local" ? ENV.local : ENV.web;
-  document.querySelectorAll(".baseurl").forEach(el => {
-    const isAndroid = el.closest("[data-panel='android']");
-    el.textContent = isAndroid ? (env === "local" ? ANDROID_LOCAL : ENV.web) : url;
-  });
-  document.querySelectorAll(".url-full").forEach(el => {
-    el.textContent = url + el.dataset.path;
-  });
-}
-
-// ---- dados das rotas ----
-const RESOURCES = [
-{ id:"auth", nome:"Autenticação", rotas:[
-  { m:"post", path:"/v1/auth/login", auth:"Público", desc:"Login — retorna o token JWT",
-    reqBody:{email:"cliente@empresa.com", senha:"Senha@1234"},
-    resBody:{token:"eyJhbGciOiJIUzI1NiJ9...", tipo:"CLIENTE"},
-    react:`const { token, tipo } = await api("/v1/auth/login", {
-  method: "POST",
-  body: { email, senha }
-});
-localStorage.setItem("mindu_token", token);`,
-    android:`@POST("v1/auth/login")
-Call<LoginResponse> login(@Body LoginRequest body);
-
-// uso:
-api.login(new LoginRequest(email, senha)).enqueue(new Callback<>() {
-    public void onResponse(Call<LoginResponse> call, Response<LoginResponse> res) {
-        String token = res.body().getToken();
-        prefs.edit().putString("token", token).apply();
-    }
-});` }
-]},
-{ id:"empresa", nome:"Empresa", rotas:[
-  { m:"post", path:"/v1/empresas", auth:"Público", desc:"Cadastrar empresa",
-    reqBody:{razaoSocial:"Acme Ltda", nomeFantasia:"Acme", inscricaoEstadual:"123456789", cnpj:"00000000000191", responsavel:"Ana Souza", cep:"01001000", logradouro:"Praça da Sé", numero:"100", complemento:"Sala 1", bairro:"Sé", cidade:"São Paulo", estado:"SP", email:"acme@empresa.com", telefone:"11999990000", senha:"Senha@1234", planoId:"<uuid do plano>"},
-    resBody:{id:"<uuid>", razaoSocial:"Acme Ltda", plano:"Start"},
-    react:`await api("/v1/empresas", { method: "POST", body: dadosEmpresa });`,
-    android:`@POST("v1/empresas")
-Call<EmpresaResponse> cadastrarEmpresa(@Body EmpresaRequest body);` },
-  { m:"post", path:"/v1/empresas/{id}/matriculas", auth:"Empresa", desc:"Gerar matrículas (?quantidade=5)",
-    reqBody:null,
-    resBody:[{id:"<uuid>", codigo:"A1B2C3", utilizada:false}],
-    react:`await api(\`/v1/empresas/\${empresaId}/matriculas?quantidade=5\`, { method: "POST" });`,
-    android:`@POST("v1/empresas/{id}/matriculas")
-Call<List<MatriculaResponse>> gerarMatriculas(@Path("id") String empresaId, @Query("quantidade") int quantidade);` },
-  { m:"get", path:"/v1/empresas/{id}/dashboard", auth:"Empresa", desc:"Contadores do painel da empresa",
-    reqBody:null,
-    resBody:{matriculasDisponiveis:25, matriculasUsadas:5, clientesAprovados:4},
-    react:`const dash = await api(\`/v1/empresas/\${empresaId}/dashboard\`);`,
-    android:`@GET("v1/empresas/{id}/dashboard")
-Call<DashboardResponse> getDashboard(@Path("id") String empresaId);` }
-]},
-{ id:"cliente", nome:"Cliente", rotas:[
-  { m:"post", path:"/v1/clientes", auth:"Público", desc:"Cadastro — etapa 1 (com matrícula)",
-    reqBody:{nome:"Maria Silva", email:"maria@email.com", senha:"Senha@1234", empresaId:"<uuid>", matricula:"A1B2C3"},
-    resBody:{id:"<uuid>", status:"AGUARDANDO_APROVACAO"},
-    react:`await api("/v1/clientes", { method: "POST", body: dadosCliente });`,
-    android:`@POST("v1/clientes")
-Call<ClienteResponse> cadastrarCliente(@Body ClienteRequest body);` },
-  { m:"patch", path:"/v1/clientes/{id}/aprovacao", auth:"Empresa", desc:"Aprovar ou rejeitar o cliente (?aprovado=true)",
-    reqBody:null,
-    resBody:{id:"<uuid>", status:"APROVADO"},
-    react:`await api(\`/v1/clientes/\${id}/aprovacao?aprovado=true\`, { method: "PATCH" });`,
-    android:`@PATCH("v1/clientes/{id}/aprovacao")
-Call<ClienteResponse> aprovarCliente(@Path("id") String id, @Query("aprovado") boolean aprovado);` },
-  { m:"patch", path:"/v1/clientes/{id}/dados-sensiveis", auth:"Cliente", desc:"Cadastro — etapa 2 (CNS, nascimento, gênero)",
-    reqBody:{cns:"898001234567890", dataNascimento:"1995-03-20", nomeMae:"Ana Silva", genero:"FEMININO"},
-    resBody:{id:"<uuid>", status:"APROVADO"},
-    react:`await api(\`/v1/clientes/\${id}/dados-sensiveis\`, { method: "PATCH", body: dados });`,
-    android:`@PATCH("v1/clientes/{id}/dados-sensiveis")
-Call<ClienteResponse> enviarDadosSensiveis(@Path("id") String id, @Body DadosSensiveisRequest body);` },
-  { m:"get", path:"/v1/clientes", auth:"Empresa", desc:"Listar clientes da empresa (?empresaId=)",
-    reqBody:null,
-    resBody:[{id:"<uuid>", nome:"Maria Silva", status:"APROVADO"}],
-    react:`const clientes = await api(\`/v1/clientes?empresaId=\${empresaId}\`);`,
-    android:`@GET("v1/clientes")
-Call<List<ClienteResponse>> listarClientes(@Query("empresaId") String empresaId);` }
-]},
-{ id:"profissional", nome:"Profissional", rotas:[
-  { m:"post", path:"/v1/profissionais", auth:"Público", desc:"Cadastro — multipart/form-data (campos soltos + foto)", isForm:true,
-    reqBody:{nome:"Dr. João Lima", email:"joao@mindu.com", senha:"Senha@1234", tipo:"PSICOLOGO", tags:["ansiedade","TCC"], fotoCarteirinha:"(arquivo)"},
-    resBody:{id:"<uuid>", status:"PENDENTE"},
-    react:`const form = new FormData();
-form.append("nome", nome);
-form.append("email", email);
-form.append("senha", senha);
-form.append("tipo", tipo); // PSICOLOGO | PSIQUIATRA | TERAPEUTA
-tags.forEach(t => form.append("tags", t)); // repita a chave por tag
-form.append("fotoCarteirinha", arquivoInput.files[0]);
-
-await api("/v1/profissionais", { method: "POST", body: form, isFormData: true });`,
-    android:`@Multipart
-@POST("v1/profissionais")
-Call<ProfissionalResponse> cadastrar(
-    @Part("nome") RequestBody nome,
-    @Part("email") RequestBody email,
-    @Part("senha") RequestBody senha,
-    @Part("tipo") RequestBody tipo,
-    @Part("tags") List<RequestBody> tags,
-    @Part MultipartBody.Part fotoCarteirinha
-);
-
-// montando a foto a partir de um File:
-RequestBody fotoBody = RequestBody.create(arquivoFoto, MediaType.parse("image/jpeg"));
-MultipartBody.Part foto = MultipartBody.Part.createFormData("fotoCarteirinha", arquivoFoto.getName(), fotoBody);` },
-  { m:"patch", path:"/v1/profissionais/{id}/aprovacao", auth:"Admin", desc:"Aprovar ou rejeitar profissional (?aprovado=true)",
-    reqBody:null,
-    resBody:{id:"<uuid>", status:"APROVADO"},
-    react:`await api(\`/v1/profissionais/\${id}/aprovacao?aprovado=true\`, { method: "PATCH" });`,
-    android:`@PATCH("v1/profissionais/{id}/aprovacao")
-Call<ProfissionalResponse> aprovarProfissional(@Path("id") String id, @Query("aprovado") boolean aprovado);` },
-  { m:"post", path:"/v1/profissionais/{id}/locais", auth:"Profissional", desc:"Adicionar local de atendimento",
-    reqBody:{modalidade:"PRESENCIAL", cep:"01001000", logradouro:"Av. Paulista", numero:"1000", bairro:"Bela Vista", cidade:"São Paulo", estado:"SP"},
-    resBody:{id:"<uuid>", modalidade:"PRESENCIAL"},
-    react:`await api(\`/v1/profissionais/\${id}/locais\`, { method: "POST", body: local });`,
-    android:`@POST("v1/profissionais/{id}/locais")
-Call<LocalResponse> adicionarLocal(@Path("id") String id, @Body LocalRequest body);` },
-  { m:"put", path:"/v1/profissionais/{id}/disponibilidade", auth:"Profissional", desc:"Definir os horários da semana",
-    reqBody:[{diaSemana:"SEGUNDA", horaInicio:"08:00", horaFim:"12:00"}],
-    resBody:[{diaSemana:"SEGUNDA", horaInicio:"08:00", horaFim:"12:00"}],
-    react:`await api(\`/v1/profissionais/\${id}/disponibilidade\`, { method: "PUT", body: janelas });`,
-    android:`@PUT("v1/profissionais/{id}/disponibilidade")
-Call<List<DisponibilidadeResponse>> definirDisponibilidade(@Path("id") String id, @Body List<DisponibilidadeRequest> body);` },
-  { m:"get", path:"/v1/profissionais", auth:"Autenticado", desc:"Buscar profissionais (?modalidade=&nome=&especialidade=)",
-    reqBody:null,
-    resBody:[{id:"<uuid>", nome:"Dr. João Lima", tipo:"PSICOLOGO", tags:["ansiedade"]}],
-    react:`const resultado = await api("/v1/profissionais?especialidade=ansiedade");`,
-    android:`@GET("v1/profissionais")
-Call<List<ProfissionalResponse>> buscar(@Query("modalidade") String modalidade,
-                                        @Query("nome") String nome,
-                                        @Query("especialidade") String especialidade);` }
-]},
-{ id:"agendamento", nome:"Agendamento", rotas:[
-  { m:"post", path:"/v1/agendamentos", auth:"Cliente", desc:"Agendar uma consulta",
-    reqBody:{clienteId:"<uuid>", profissionalId:"<uuid>", dataHora:"2026-10-05T10:00:00"},
-    resBody:{id:"<uuid>", status:"AGENDADO"},
-    react:`await api("/v1/agendamentos", { method: "POST", body: dadosAgendamento });`,
-    android:`@POST("v1/agendamentos")
-Call<AgendamentoResponse> agendar(@Body AgendamentoRequest body);` },
-  { m:"get", path:"/v1/agendamentos/meus", auth:"Cliente", desc:"Listar meus agendamentos (?clienteId=)",
-    reqBody:null,
-    resBody:[{id:"<uuid>", status:"AGENDADO", dataHora:"2026-10-05T10:00:00"}],
-    react:`const meus = await api(\`/v1/agendamentos/meus?clienteId=\${clienteId}\`);`,
-    android:`@GET("v1/agendamentos/meus")
-Call<List<AgendamentoResponse>> meusAgendamentos(@Query("clienteId") String clienteId);` },
-  { m:"patch", path:"/v1/agendamentos/{id}/cancelamento", auth:"Cliente/Profissional", desc:"Cancelar um agendamento",
-    reqBody:null,
-    resBody:{id:"<uuid>", status:"CANCELADO"},
-    react:`await api(\`/v1/agendamentos/\${id}/cancelamento\`, { method: "PATCH" });`,
-    android:`@PATCH("v1/agendamentos/{id}/cancelamento")
-Call<AgendamentoResponse> cancelar(@Path("id") String id);` }
-]}
-];
-
-function esc(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function json(o){ return o === null ? null : JSON.stringify(o, null, 2); }
-
-function buildNav(){
-  const nav = document.getElementById("sidenav");
-  nav.innerHTML = RESOURCES.map(r => `<div class="grp">${r.nome}</div>` +
-    r.rotas.map(rt => `<a href="#${r.id}-${rt.path.replace(/[/{}]/g,'')}">${rt.m.toUpperCase()} ${rt.path}</a>`).join("")
-  ).join("");
-}
-
-function buildRoutes(){
-  const el = document.getElementById("routes");
-  el.innerHTML = RESOURCES.map(res => `
-    <section class="resource" id="${res.id}">
-      <h2>${res.nome}</h2>
-      ${res.rotas.map((rt,i) => routeHTML(res.id, rt, i)).join("")}
-    </section>
-  `).join("");
-}
-
-function routeHTML(resId, rt, i){
-  const anchor = `${resId}-${rt.path.replace(/[/{}]/g,'')}`;
-  const uid = `${resId}-${i}`;
-  return `
-  <div class="route" id="${anchor}">
-    <button class="head" onclick="this.parentElement.classList.toggle('open')">
-      <span class="badge ${rt.m}">${rt.m.toUpperCase()}</span>
-      <span class="path">${rt.path}</span>
-      <span class="desc">${rt.desc}</span>
-      <span class="auth-pill">${rt.auth}</span>
-      <span class="chev">▸</span>
-    </button>
-    <div class="body">
-      <p class="d">${rt.desc}</p>
-      <div class="url-line"><span class="m">${rt.m.toUpperCase()}</span> <span class="url-full" data-path="${rt.path}">${ENV.local}${rt.path}</span></div>
-      ${rt.isForm ? `<p class="d">Corpo: <code>multipart/form-data</code></p>` : (rt.reqBody ? `<p class="d">Corpo da requisição:</p><pre><code>${esc(json(rt.reqBody))}</code></pre>` : '')}
-      <p class="d">Resposta:</p>
-      <pre><code>${esc(json(rt.resBody))}</code></pre>
-      <div class="tabs" data-tabs="${uid}">
-        <button class="active" onclick="switchTab('${uid}','react',this)">Sabrina · React</button>
-        <button onclick="switchTab('${uid}','android',this)">Manoela · Android</button>
-      </div>
-      <div class="panel active" data-panel="${uid}-react"><pre><code>${esc(rt.react)}</code></pre></div>
-      <div class="panel" data-panel="${uid}-android"><pre><code>${esc(rt.android)}</code></pre></div>
-    </div>
-  </div>`;
-}
-
-function switchTab(uid, which, btn){
-  document.querySelectorAll(`[data-tabs="${uid}"] button`).forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector(`[data-panel="${uid}-react"]`).classList.toggle('active', which==='react');
-  document.querySelector(`[data-panel="${uid}-android"]`).classList.toggle('active', which==='android');
-}
-
-document.querySelectorAll('[data-setuptabs] button').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('[data-setuptabs] button').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    document.querySelectorAll('.setup .panel').forEach(p => p.classList.toggle('active', p.dataset.panel === b.dataset.tab));
-  });
-});
-
-buildNav();
-buildRoutes();
-setEnv('local');
-</script>
 </body>
 </html>

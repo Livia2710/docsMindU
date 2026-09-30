@@ -1,0 +1,770 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Modelagem do Backend — MindU</h1>
+<p>Documento no mesmo formato do roteiro da Aula 01 (Requisitos → Casos de Uso → Domínio → DER → Classes → Arquitetura), adaptado ao MindU com as decisões já fechadas em grupo.</p>
+<hr>
+<h2>1. Visão geral da aplicação</h2>
+<p>O MindU é um convênio de saúde mental corporativo. Uma <strong>Empresa</strong> contrata um <strong>Plano</strong> e recebe uma cota de <strong>matrículas</strong> para distribuir aos colaboradores. Cada <strong>Cliente</strong> (colaborador) se cadastra informando a matrícula recebida da Empresa; após aprovação da Empresa, completa o cadastro com dados sensíveis (CNS, nascimento, nome da mãe, sexo). O <strong>Profissional</strong> (psicólogo, psiquiatra etc.) se cadastra com foto, carteirinha, especialidade, local(is) de atendimento (presencial/virtual/híbrido) e disponibilidade; passa por aprovação de um <strong>Admin</strong> (perfil interno, uso exclusivo dos desenvolvedores) antes de aparecer nas buscas. O Cliente pesquisa Profissionais e agenda consultas.</p>
+<table>
+<thead>
+<tr>
+<th>Área</th>
+<th>Tecnologia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Front-End</td>
+<td>React (colega)</td>
+</tr>
+<tr>
+<td>Back-End</td>
+<td>Spring Boot (Java), Spring Security, Spring Data JPA, JJWT, Lombok</td>
+</tr>
+<tr>
+<td>Banco de Dados</td>
+<td>PostgreSQL</td>
+</tr>
+<tr>
+<td>Autenticação</td>
+<td>JWT stateless + bloqueio por tentativas de login</td>
+</tr>
+<tr>
+<td>Empacotamento</td>
+<td>Docker / docker-compose</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>2. Proposta de Planos (para validar com o grupo)</h2>
+<p>Como não há cobrança real (a Empresa só &quot;escolhe&quot; um plano, sem pagamento no sistema), a lógica dos planos serve para <strong>limitar quantas matrículas</strong> a Empresa pode distribuir. Sugestão de três níveis, alinhados ao porte da empresa (classificação comum no Brasil: pequena = ~10-49, média = ~50-499, grande = 500+ colaboradores):</p>
+<table>
+<thead>
+<tr>
+<th>Plano</th>
+<th>Porte indicado</th>
+<th>Matrículas inclusas (sugestão)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Plano Start</strong></td>
+<td>Empresas de pequeno porte</td>
+<td>até 30 matrículas</td>
+</tr>
+<tr>
+<td><strong>Plano Essencial</strong></td>
+<td>Empresas de médio porte</td>
+<td>até 100 matrículas</td>
+</tr>
+<tr>
+<td><strong>Plano Corporativo</strong></td>
+<td>Empresas de grande porte</td>
+<td>até 500 matrículas (ou &quot;sob consulta&quot;, vocês decidem um teto maior)</td>
+</tr>
+</tbody>
+</table>
+<p>Os números são só ponto de partida — ajustem livremente. O importante para o modelo é que <code>Plano</code> tenha um campo <code>vagasTotais</code>, e a Empresa não deve conseguir gerar mais matrículas do que esse número permite (RN09).</p>
+<hr>
+<h2>3. Requisitos Funcionais (RF)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RF01</td>
+<td>O visitante deve poder cadastrar-se como Cliente informando nome, e-mail, empresa vinculada e matrícula</td>
+</tr>
+<tr>
+<td>RF02</td>
+<td>O sistema deve validar que a matrícula informada existe, pertence à Empresa indicada e ainda não foi usada</td>
+</tr>
+<tr>
+<td>RF03</td>
+<td>O sistema deve manter o Cliente em status &quot;aguardando aprovação da Empresa&quot; até que a Empresa aprove o vínculo</td>
+</tr>
+<tr>
+<td>RF04</td>
+<td>Após aprovação da Empresa, o sistema deve permitir que o Cliente complete o cadastro com CNS/SUS, data de nascimento, nome completo da mãe e sexo</td>
+</tr>
+<tr>
+<td>RF05</td>
+<td>O visitante deve poder cadastrar-se como Empresa informando razão social, nome fantasia, inscrição estadual, CNPJ, responsável, endereço completo, e-mail, telefone e plano</td>
+</tr>
+<tr>
+<td>RF06</td>
+<td>Ao contratar um plano, o sistema deve gerar (ou permitir à Empresa gerar) a cota de matrículas correspondente</td>
+</tr>
+<tr>
+<td>RF07</td>
+<td>O visitante deve poder cadastrar-se como Profissional informando nome, e-mail, data de nascimento, sexo, telefone, tags de especialidade, foto, foto de banner e foto da carteirinha</td>
+</tr>
+<tr>
+<td>RF08</td>
+<td>O Profissional deve poder cadastrar um ou mais locais de atendimento, cada um com modalidade (presencial, virtual ou híbrido)</td>
+</tr>
+<tr>
+<td>RF09</td>
+<td>O Profissional deve poder definir/editar dias e horários de atendimento (disponibilidade) — inclusive depois do cadastro, pela bio</td>
+</tr>
+<tr>
+<td>RF10</td>
+<td>O sistema deve manter o Profissional em status &quot;pendente&quot; até aprovação de um Admin</td>
+</tr>
+<tr>
+<td>RF11</td>
+<td>O sistema deve permitir autenticação (Cliente, Empresa, Profissional, Admin) via e-mail e senha, emitindo um token JWT</td>
+</tr>
+<tr>
+<td>RF12</td>
+<td>O sistema deve bloquear a conta por tempo determinado após tentativas de login incorretas seguidas</td>
+</tr>
+<tr>
+<td>RF13</td>
+<td>O sistema deve permitir que o Cliente pesquise Profissionais por nome, especialidade e/ou modalidade de atendimento</td>
+</tr>
+<tr>
+<td>RF14</td>
+<td>O sistema deve permitir que o Cliente agende consulta com um Profissional aprovado, em horário disponível</td>
+</tr>
+<tr>
+<td>RF15</td>
+<td>A Empresa deve poder visualizar um dashboard com status do plano, matrículas usadas/disponíveis e colaboradores pendentes</td>
+</tr>
+<tr>
+<td>RF16</td>
+<td>O Admin deve poder aprovar ou rejeitar cadastros de Profissional pendentes</td>
+</tr>
+<tr>
+<td>RF17</td>
+<td>O sistema deve notificar sucesso/falha de cada operação</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>4. Requisitos Não-Funcionais (RNF)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Categoria</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RNF01</td>
+<td>Segurança</td>
+<td>Senhas com hash BCrypt</td>
+</tr>
+<tr>
+<td>RNF02</td>
+<td>Segurança</td>
+<td>CNS e outros dados sensíveis de saúde criptografados em repouso (ex: <code>AttributeConverter</code> com AES no campo, ou <code>pgcrypto</code> no Postgres)</td>
+</tr>
+<tr>
+<td>RNF03</td>
+<td>Segurança</td>
+<td>Endpoints autenticados exigem JWT válido no header <code>Authorization</code></td>
+</tr>
+<tr>
+<td>RNF04</td>
+<td>Segurança</td>
+<td>Bloqueio de conta após tentativas de login inválidas seguidas</td>
+</tr>
+<tr>
+<td>RNF05</td>
+<td>Confiabilidade</td>
+<td>Token JWT expira após tempo definido (ex: 60 min)</td>
+</tr>
+<tr>
+<td>RNF06</td>
+<td>Usabilidade</td>
+<td>Feedback visual em operações assíncronas</td>
+</tr>
+<tr>
+<td>RNF07</td>
+<td>Portabilidade</td>
+<td>Executável via Docker</td>
+</tr>
+<tr>
+<td>RNF08</td>
+<td>Interoperabilidade</td>
+<td>API REST stateless (JSON; o cadastro de Profissional usa multipart/form-data com campos soltos + arquivo da carteirinha)</td>
+</tr>
+<tr>
+<td>RNF09</td>
+<td>Manutenibilidade</td>
+<td>Back-end em camadas, para reuso futuro pelo app mobile</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>5. Regras de Negócio (RN)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RN01</td>
+<td>Não é permitido cadastrar dois Clientes com o mesmo e-mail ou a mesma matrícula</td>
+</tr>
+<tr>
+<td>RN02</td>
+<td>Não é permitido cadastrar duas Empresas com o mesmo CNPJ</td>
+</tr>
+<tr>
+<td>RN03</td>
+<td>Senha mínima de 8 caracteres, para qualquer perfil</td>
+</tr>
+<tr>
+<td>RN04</td>
+<td>Matrícula deve pertencer à Empresa informada e estar disponível (não usada)</td>
+</tr>
+<tr>
+<td>RN05</td>
+<td>Cliente só completa a etapa 2 (dados sensíveis) após aprovação da Empresa</td>
+</tr>
+<tr>
+<td>RN06</td>
+<td>Profissional só aparece em buscas depois de aprovado por um Admin</td>
+</tr>
+<tr>
+<td>RN07</td>
+<td><strong>Bloqueio de login: após 5 tentativas incorretas seguidas, a conta é bloqueada por 15 minutos.</strong> Contador zera após login bem-sucedido</td>
+</tr>
+<tr>
+<td>RN08</td>
+<td>Token de acesso expira após 60 minutos</td>
+</tr>
+<tr>
+<td>RN09</td>
+<td>O total de matrículas geradas por uma Empresa não pode ultrapassar <code>vagasTotais</code> do seu plano</td>
+</tr>
+<tr>
+<td>RN10</td>
+<td>Cliente só agenda consulta com Profissional aprovado, em horário compatível com a disponibilidade cadastrada e sem conflito com outro agendamento</td>
+</tr>
+<tr>
+<td>RN11</td>
+<td>Admin é um perfil de uso interno (equipe de desenvolvimento), sem tela pública de auto-cadastro</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>6. Rastreabilidade — Requisito → Caso de Uso</h2>
+<table>
+<thead>
+<tr>
+<th>Requisito</th>
+<th>Caso(s) de Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RF01–RF04</td>
+<td>CSU01 – Cadastrar-se e ser aprovado (Cliente)</td>
+</tr>
+<tr>
+<td>RF05, RF06</td>
+<td>CSU02 – Cadastrar-se (Empresa)</td>
+</tr>
+<tr>
+<td>RF07–RF09</td>
+<td>CSU03 – Cadastrar-se (Profissional)</td>
+</tr>
+<tr>
+<td>RF16</td>
+<td>CSU04 – Aprovar/Rejeitar Profissional (Admin)</td>
+</tr>
+<tr>
+<td>RF03, RF15</td>
+<td>CSU05 – Aprovar Cliente (Empresa)</td>
+</tr>
+<tr>
+<td>RF11, RF12</td>
+<td>CSU06 – Autenticar-se</td>
+</tr>
+<tr>
+<td>RF13</td>
+<td>CSU07 – Pesquisar Profissionais</td>
+</tr>
+<tr>
+<td>RF14</td>
+<td>CSU08 – Agendar Consulta</td>
+</tr>
+<tr>
+<td>RF15</td>
+<td>CSU09 – Visualizar Dashboard (Empresa)</td>
+</tr>
+<tr>
+<td>RF17</td>
+<td>Transversal</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>7. Diagrama de Casos de Uso</h2>
+<pre class="mermaid">graph TD
+    Cliente((Cliente))
+    Empresa((Empresa))
+    Profissional((Profissional))
+    Admin((Admin - interno))
+
+    Cliente --&gt; CSU01[Cadastrar-se - Cliente]
+    Cliente --&gt; CSU06[Autenticar-se]
+    Cliente --&gt; CSU07[Pesquisar Profissionais]
+    Cliente --&gt; CSU08[Agendar Consulta]
+
+    Empresa --&gt; CSU02[Cadastrar-se - Empresa]
+    Empresa --&gt; CSU05[Aprovar Cliente]
+    Empresa --&gt; CSU06
+    Empresa --&gt; CSU09[Visualizar Dashboard]
+
+    Profissional --&gt; CSU03[Cadastrar-se - Profissional]
+    Profissional --&gt; CSU06
+
+    Admin --&gt; CSU04[Aprovar/Rejeitar Profissional]
+    Admin --&gt; CSU06
+</pre>
+<hr>
+<h2>8. Fluxo de Cadastro do Cliente (detalhado)</h2>
+<pre class="mermaid">sequenceDiagram
+    actor Cliente
+    participant ClienteController
+    participant ClienteService
+    participant MatriculaRepository
+    actor Empresa
+
+    Cliente-&gt;&gt;ClienteController: POST /v1/clientes (nome, email, empresaId, matricula)
+    ClienteController-&gt;&gt;ClienteService: cadastrar(dto)
+    ClienteService-&gt;&gt;MatriculaRepository: findByCodigoAndEmpresa(matricula, empresaId)
+    alt matrícula inválida ou já usada
+        ClienteService--&gt;&gt;ClienteController: erro
+        ClienteController--&gt;&gt;Cliente: 400/409
+    else matrícula válida
+        ClienteService-&gt;&gt;MatriculaRepository: marcarComoReservada(matricula, cliente)
+        ClienteService--&gt;&gt;ClienteController: cliente (status AGUARDANDO_APROVACAO)
+        ClienteController--&gt;&gt;Cliente: 201 Created
+    end
+
+    Note over Empresa: mais tarde, no dashboard
+    Empresa-&gt;&gt;ClienteController: PATCH /v1/clientes/{id}/aprovacao (aprovado=true)
+    ClienteController--&gt;&gt;Cliente: status = APROVADO
+
+    Cliente-&gt;&gt;ClienteController: PATCH /v1/clientes/{id}/dados-sensiveis (cns, nascimento, nomeMae, genero)
+    ClienteController--&gt;&gt;Cliente: 200 OK (cadastro completo)
+</pre>
+<hr>
+<h2>9. Modelo de Domínio</h2>
+<pre class="mermaid">classDiagram
+    class Usuario {
+        &lt;&lt;abstract&gt;&gt;
+        id : String
+        nome : String
+        email : String
+        senha : String
+        telefone : String
+        tentativasLogin : int
+        bloqueadoAte : DateTime
+        criadoEm : DateTime
+    }
+    class Cliente {
+        empresa : Empresa
+        matricula : Matricula
+        cns : String
+        dataNascimento : Date
+        nomeMae : String
+        genero : Genero
+        status : StatusCadastroCliente
+    }
+    class Empresa {
+        razaoSocial : String
+        nomeFantasia : String
+        inscricaoEstadual : String
+        cnpj : String
+        responsavel : String
+        cep : String
+        logradouro : String
+        numero : String
+        complemento : String
+        bairro : String
+        cidade : String
+        estado : String
+        plano : Plano
+    }
+    class Profissional {
+        tipo : TipoProfissional
+        dataNascimento : Date
+        genero : Genero
+        tags : String
+        cep : String
+        foto : Binario
+        fotoBanner : Binario
+        fotoCarteirinha : Binario
+        status : StatusVerificacao
+    }
+    class LocalAtendimento {
+        modalidade : Modalidade
+        cep : String
+        logradouro : String
+        numero : String
+        complemento : String
+        bairro : String
+        cidade : String
+        estado : String
+        linkOnline : String
+    }
+    class Disponibilidade {
+        diaSemana : DiaSemana
+        horaInicio : Time
+        horaFim : Time
+    }
+    class Admin
+    class Plano {
+        nome : String
+        vagasTotais : int
+        porteIndicado : String
+    }
+    class Matricula {
+        codigo : String
+        utilizada : boolean
+    }
+    class Agendamento {
+        dataHora : DateTime
+        status : StatusAgendamento
+        modalidade : Modalidade
+        linkConsulta : String
+    }
+
+    Usuario &lt;|-- Cliente
+    Usuario &lt;|-- Empresa
+    Usuario &lt;|-- Profissional
+    Usuario &lt;|-- Admin
+    Empresa &#34;1&#34; --&gt; &#34;1&#34; Plano : contrata
+    Empresa &#34;1&#34; --&gt; &#34;N&#34; Matricula : gera
+    Cliente &#34;1&#34; --&gt; &#34;1&#34; Matricula : usa
+    Cliente &#34;N&#34; --&gt; &#34;1&#34; Empresa : vinculado a
+    Profissional &#34;1&#34; --&gt; &#34;N&#34; LocalAtendimento : atende em
+    Profissional &#34;1&#34; --&gt; &#34;N&#34; Disponibilidade : define
+    Agendamento &#34;N&#34; --&gt; &#34;1&#34; Cliente
+    Agendamento &#34;N&#34; --&gt; &#34;1&#34; Profissional
+</pre>
+<blockquote>
+<p><code>Usuario</code> como superclasse com <code>@Inheritance(strategy = InheritanceType.JOINED)</code> — cada subclasse (Cliente, Empresa, Profissional, Admin) vira sua própria tabela, ligada por <code>id</code> à tabela <code>usuario</code>, evitando colunas nulas de outros perfis.</p>
+</blockquote>
+<hr>
+<h2>10. Modelo Entidade-Relacionamento (DER)</h2>
+<pre class="mermaid">erDiagram
+    USUARIO ||--o| CLIENTE : especializa
+    USUARIO ||--o| EMPRESA : especializa
+    USUARIO ||--o| PROFISSIONAL : especializa
+    USUARIO ||--o| ADMIN : especializa
+    EMPRESA ||--|| PLANO : contrata
+    EMPRESA ||--o{ MATRICULA : gera
+    CLIENTE ||--|| MATRICULA : usa
+    PROFISSIONAL ||--o{ LOCAL_ATENDIMENTO : possui
+    PROFISSIONAL ||--o{ DISPONIBILIDADE : define
+    CLIENTE ||--o{ AGENDAMENTO : agenda
+    PROFISSIONAL ||--o{ AGENDAMENTO : atende
+
+    USUARIO {
+        string id PK
+        string nome
+        string email
+        string senha
+        string telefone
+        int tentativas_login
+        timestamp bloqueado_ate
+        timestamp criado_em
+    }
+    PLANO {
+        string id PK
+        string nome
+        int vagas_totais
+        string porte_indicado
+    }
+    EMPRESA {
+        string usuario_id PK_FK
+        string razao_social
+        string nome_fantasia
+        string inscricao_estadual
+        string cnpj
+        string responsavel
+        string cep
+        string logradouro
+        string numero
+        string complemento
+        string bairro
+        string cidade
+        string estado
+        string plano_id FK
+    }
+    MATRICULA {
+        string id PK
+        string empresa_id FK
+        string codigo
+        boolean utilizada
+    }
+    CLIENTE {
+        string usuario_id PK_FK
+        string empresa_id FK
+        string matricula_id FK
+        string cns_criptografado
+        date data_nascimento
+        string nome_mae
+        string genero
+        string status
+    }
+    PROFISSIONAL {
+        string usuario_id PK_FK
+        string tipo
+        date data_nascimento
+        string genero
+        string tags
+        oid foto
+        oid foto_banner
+        oid foto_carteirinha
+        string status_verificacao
+    }
+    LOCAL_ATENDIMENTO {
+        string id PK
+        string profissional_id FK
+        string modalidade
+        string cep
+        string logradouro
+        string numero
+        string complemento
+        string bairro
+        string cidade
+        string estado
+        string link_online
+    }
+    DISPONIBILIDADE {
+        string id PK
+        string profissional_id FK
+        string dia_semana
+        time hora_inicio
+        time hora_fim
+    }
+    AGENDAMENTO {
+        string id PK
+        string cliente_id FK
+        string profissional_id FK
+        timestamp data_hora
+        string status
+        string modalidade
+        string link_consulta
+    }
+</pre>
+<hr>
+<h2>11. Estrutura de pacotes (Java/IntelliJ)</h2>
+<pre><code>domain.entity          → Usuario (abstract), Cliente, Empresa, Profissional, Admin,
+                          Plano, Matricula, LocalAtendimento, Disponibilidade, Agendamento
+domain.enums           → Genero, TipoProfissional, Modalidade, DiaSemana,
+                          StatusCadastroCliente, StatusVerificacao, StatusAgendamento
+domain.service          → ClienteService, EmpresaService, ProfissionalService,
+                          AuthService, AgendamentoService, MatriculaService
+infra.repository        → ...Repository de cada entidade
+                          (+ JpaSpecificationExecutor em ProfissionalRepository p/ busca)
+infra.security          → SecurityConfig, JwtFilter, JwtService, PasswordEncoder
+application.clientes     → ClienteController, ClienteServiceImpl, ClienteMapper, ClienteDTO
+application.empresas     → EmpresaController, EmpresaServiceImpl, EmpresaMapper, EmpresaDTO
+application.profissionais→ ProfissionalController, ..Impl, ..Mapper, ..DTO
+                          (+ endpoints de LocalAtendimento e Disponibilidade)
+application.agendamentos → AgendamentoController, ..Impl, ..Mapper, ..DTO
+application.auth         → AuthController, lógica de bloqueio por tentativas
+</code></pre>
+<hr>
+<h2>12. Arquitetura em camadas</h2>
+<table>
+<thead>
+<tr>
+<th>Camada</th>
+<th>Conteúdo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Apresentação</td>
+<td>React</td>
+</tr>
+<tr>
+<td>Aplicação</td>
+<td>Controllers REST + <code>JwtFilter</code> + <code>SecurityConfig</code></td>
+</tr>
+<tr>
+<td>Domínio</td>
+<td>Services + entidades + regras de negócio</td>
+</tr>
+<tr>
+<td>Infraestrutura</td>
+<td>Repositories JPA, <code>JwtService</code>, PostgreSQL</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>13. O que ainda falta decidir</h2>
+<ol>
+<li><strong>Valores exatos do plano</strong> (seção 2) — quantidade de matrículas por plano, ainda a validar com o grupo.</li>
+<li><strong>Como a Empresa gera/distribui as matrículas</strong> — lote gerado automaticamente ao contratar o plano, ou a Empresa cadastra manualmente cada código? (impacta o endpoint de <code>Matricula</code>)</li>
+<li><strong>Conflito de horário no agendamento (RN10)</strong> — validar contra <code>Disponibilidade</code> e contra outros <code>Agendamento</code>s do mesmo Profissional no mesmo horário; regra simples de sobreposição a implementar no <code>AgendamentoService</code>.</li>
+<li><strong>Estratégia concreta de criptografia do CNS</strong> — <code>AttributeConverter</code> (Java, mais simples) vs <code>pgcrypto</code> (no banco); ambas resolvem, a primeira é mais fácil de implementar seguindo o nível das aulas.</li>
+</ol>
+<p>Nenhum desses bloqueia começar a codar — dá para seguir com os packages da seção 11 e resolver 2–4 durante a implementação de cada módulo.</p>
+<hr>
+<h2>14. Lembretes — o que mudar e o que acrescentar</h2>
+<p>Estado ao fim da rodada de testes no Postman (coleção com 43 requests, todos com o resultado esperado). Legenda: ☑ confirmado nos testes · ☐ ainda a fazer ou a conferir.</p>
+
+<h3>14.1 Já ajustado no código durante os testes</h3>
+<ul>
+<li>☑ <code>SecurityConfig</code>: <code>/error</code> liberado, POST de cadastro público, 401 sem token (antes vinha 403)</li>
+<li>☑ Filtro por especialidade (<code>tags</code>) via <code>join</code> no <code>ProfissionalSpecs</code></li>
+<li>☑ Senha mínima de 8 caracteres nos DTOs de cadastro (RN03)</li>
+<li>☑ Cadastro de Profissional em <code>multipart/form-data</code> com campos soltos (<code>@ModelAttribute</code>) + <code>fotoCarteirinha</code>; foto e banner seguem em <code>PATCH /v1/profissionais/{id}/perfil</code></li>
+<li>☑ Expiração do token (RN08) validada com <code>expiracao-ms</code> reduzido</li>
+</ul>
+
+<h3>14.2 Mudar (documento × código)</h3>
+<ul>
+<li>☑ <code>Sexo</code>/<code>sexo</code> → <code>Genero</code>/<code>genero</code> nos diagramas, no DER e na lista de enums</li>
+<li>☐ Decidido: passa a "gênero". Falta ajustar os textos da visão geral e dos RF04/RF07, que ainda dizem "sexo"</li>
+<li>☐ RF07 lista data de nascimento, sexo, telefone, foto e banner no cadastro: conferir com o <code>ProfissionalCadastroDTO</code> real e ajustar o requisito</li>
+<li>☐ DER: <code>link_online</code> (Local), <code>modalidade</code> e <code>link_consulta</code> (Agendamento) não existem nas entidades — remover do DER ou implementar</li>
+<li>☐ Seção 11: <code>AuthService</code> e <code>MatriculaService</code> não existem como classes (o <code>AuthController</code> usa os repositories direto) — ajustar a seção ou criar os services</li>
+<li>☐ Seção 13: itens 2, 3 e 4 já foram decididos na implementação (Empresa gera matrículas por endpoint com <code>quantidade</code>; RN10 validada no <code>AgendamentoService</code>; CNS criptografado com <code>AttributeConverter</code>) — marcar como resolvidos</li>
+<li>☐ DER: se as fotos forem trocadas de <code>@Lob</code> (oid) para <code>bytea</code>, atualizar o tipo dos três campos de foto</li>
+</ul>
+
+<h3>14.3 Acrescentar (código)</h3>
+<ul>
+<li>☑ <code>GlobalExceptionHandler</code> com <code>DataIntegrityViolationException</code> → 409 (hoje e-mail repetido entre perfis pode virar 500)</li>
+<li>☑ Zerar <code>tentativasLogin</code> quando o bloqueio expira (RN07), senão uma única senha errada bloqueia de novo</li>
+<li>☑ Agendamento: aceitar só horários antes de <code>horaFim</code> (hoje o horário exato do fim é aceito)</li>
+<li>☐ Dashboard (RF15): <code>matriculasUsadas</code> deve contar as matrículas marcadas como utilizadas, não as geradas</li>
+<li>☐ Checagem de perfil nos endpoints de aprovação: só a Empresa aprova os próprios Clientes e só o Admin aprova Profissionais (exige o perfil no token JWT)</li>
+<li>☑ <code>@ToString.Exclude</code> e <code>@EqualsAndHashCode.Exclude</code> no campo <code>profissional</code> de <code>LocalAtendimento</code> e <code>Disponibilidade</code></li>
+<li>☑ Remover o <code>System.out.println</code> da senha no seed dos Admins e garantir que nenhuma senha real esteja no <code>application.yml</code> ou no Git</li>
+<li>☑ <code>expiracao-ms</code> de volta ao valor original depois do teste da RN08</li>
+</ul>
+
+<h3>14.4 Acrescentar (documentação e entrega)</h3>
+<ul>
+<li>☑ CNS ilegível conferido no pgAdmin (RNF02); anexar o print ao relatório, se houver</li>
+<li>☑ Print do Runner do Postman com todos os requests passando e a coleção exportada, anexados ao relatório</li>
+<li>☐ Documentar a variável de ambiente <code>MINDU_ADMIN_SENHA</code> e o seed dos Admins</li>
+<li>☐ Avisar quem faz o React sobre o novo formato do cadastro de Profissional (<code>FormData</code> com <code>nome</code>, <code>email</code>, <code>senha</code>, <code>tipo</code>, <code>tags</code> repetido e <code>fotoCarteirinha</code>)</li>
+<li>☐ Registrar em "O que mudaria" as melhorias futuras: perfil no token, contadores do dashboard e atualização de perfil com foto sem cobertura de teste</li>
+</ul>
+
+<h3>14.5 Rastreabilidade — regra → teste</h3>
+<table>
+<thead>
+<tr>
+<th>Regra</th>
+<th>Como foi verificada</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>RN01</td><td>Postman 6.3 (matrícula já utilizada) e 6.4 (e-mail duplicado)</td><td>409 ☑</td></tr>
+<tr><td>RN02</td><td>Postman 6.1 (CNPJ duplicado)</td><td>409 ☑</td></tr>
+<tr><td>RN03</td><td>Postman 6.7 (senha com 7 caracteres)</td><td>400 ☑</td></tr>
+<tr><td>RN04</td><td>Postman 6.6 (matrícula de outra empresa)</td><td>400 ☑</td></tr>
+<tr><td>RN05</td><td>Postman 2.3 (dados sensíveis antes da aprovação)</td><td>403 ☑</td></tr>
+<tr><td>RN06</td><td>Postman 3.2 (profissional pendente fora da busca)</td><td>200, não listado ☑</td></tr>
+<tr><td>RN07</td><td>Postman 6.10 a 6.15 (5 senhas erradas, depois a certa)</td><td>401 ×5, depois 423 ☑</td></tr>
+<tr><td>RN08</td><td>Manual: <code>expiracao-ms</code> em 30000, espera e chamada protegida</td><td>401 após expirar ☑</td></tr>
+<tr><td>RN09</td><td>Postman 6.2 (1000 matrículas acima do limite do plano)</td><td>400 ☑</td></tr>
+<tr><td>RN10</td><td>Postman 5.2 (conflito), 5.3 (fora da disponibilidade), 5.6 (reagendar após cancelar)</td><td>409, 400, 201 ☑</td></tr>
+<tr><td>RNF02</td><td>Conferência da coluna <code>cns</code> no pgAdmin</td><td>Criptografado ☑</td></tr>
+<tr><td>RNF03</td><td>Postman 6.8 (endpoint protegido sem token)</td><td>401 ☑</td></tr>
+</tbody>
+</table>
+
+
+<!--claude-mermaid-runtime-begin:3477-->
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="/_runtime/mermaid-11.16.1.min.js"></script>
+<script>(function(){
+var CFG={"palettes":{"light":{"surface":"#f4efe4","text":"#42392e","line":"#8a7f6d","border":"#7a6c52","bg":"#fffdf8"},"dark":{"surface":"#262b34","text":"#f2f3f5","line":"#a8adb8","border":"#9aa4b8","bg":"#1f232b"}}};
+if(typeof mermaid==='undefined')return;
+var pres=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).filter(function(p){if(p.hasAttribute('data-claude-mermaid-claimed'))return false;p.setAttribute('data-claude-mermaid-claimed','1');return true;});
+if(!pres.length)return;
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement;
+var items=pres.map(function(pre){
+var mount=document.createElement('div');mount.className='mermaid-diagram';
+return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var seq=0;
+var renderGen=0;
+var lastKey='';
+function pageBg(fallback){
+var els=[document.body,document.documentElement];
+for(var i=0;i<els.length;i++){
+var c=els[i]&&getComputedStyle(els[i]).backgroundColor;
+if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c;
+}
+return fallback;
+}
+function render(){
+var theme=root.getAttribute('data-theme');
+var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+var pal=dark?CFG.palettes.dark:CFG.palettes.light;
+var bg=pageBg(pal.bg);
+var key=(dark?'d':'l')+'|'+bg;
+if(key===lastKey)return;
+lastKey=key;
+var gen=++renderGen;
+var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+var nat={useMaxWidth:false};
+mermaid.initialize({
+startOnLoad:false,securityLevel:'strict',theme:'base',
+flowchart:nat,sequence:nat,er:nat,state:nat,class:nat,pie:nat,
+gantt:nat,journey:nat,timeline:nat,gitGraph:nat,mindmap:nat,xyChart:nat,
+quadrantChart:nat,sankey:nat,c4:nat,requirement:nat,block:nat,
+packet:nat,kanban:nat,architecture:nat,radar:nat,
+themeVariables:{background:bg,mainBkg:pal.surface,primaryColor:pal.surface,
+primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:bg,
+clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,
+darkMode:dark,rowOdd:bg,rowEven:'rgba(127,127,127,0.07)',
+attributeBackgroundColorOdd:bg,attributeBackgroundColorEven:'rgba(127,127,127,0.07)',
+fontSize:'16px',fontFamily:font},
+themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 2px; }'
+});
+items.forEach(function(it){
+var id='claude-mermaid-'+seq++;
+mermaid.render(id,it.src).then(function(r){
+if(gen!==renderGen)return;
+var prev=it.pre.previousElementSibling;
+if(prev&&prev.className==='mermaid-diagram'&&prev!==it.mount)return;
+it.mount.innerHTML=r.svg;
+if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+it.pre.style.display='none';
+},function(){
+var scratch=document.getElementById(id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+scratch=document.getElementById('d'+id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+if(gen!==renderGen)return;
+if(it.mount.parentNode)it.mount.parentNode.removeChild(it.mount);
+it.pre.style.display='';
+});
+});
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+if(typeof MutationObserver!=='undefined')new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+<!--claude-mermaid-runtime-end-->
+</body></html>
