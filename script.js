@@ -226,6 +226,11 @@ function codClasse(codigo) {
 }
 
 const ERROS_COMUNS = {
+  "GET /v1/planos": [
+    { codigo: "lista vazia", motivo: "a API respondeu, mas não há planos cadastrados", correcao: "confirme que o seed de planos rodou ao iniciar a API e que a tabela plano tem registros" },
+    { codigo: "CORS", motivo: "requisição bloqueada pelo navegador antes de chegar à API (só no React)", correcao: "confirme que a origem do site está na configuração CORS_ORIGENS do backend" },
+    { codigo: "404", motivo: "rota não encontrada", correcao: "confirme que está usando GET /v1/planos e que a API implantada inclui a versão com essa rota" }
+  ],
   "POST /v1/auth/login": [
     { codigo: "401", motivo: "e-mail ou senha incorretos", correcao: "confira as credenciais; se for logo após o deploy, confirme que o seed de admins rodou (variável MINDU_ADMIN_SENHA preenchida)" },
     { codigo: "423", motivo: "conta bloqueada após 5 tentativas erradas (RN07)", correcao: "aguarde 15 minutos, ou no banco: UPDATE usuario SET tentativas_login = 0, bloqueado_ate = NULL WHERE email = '...'" },
