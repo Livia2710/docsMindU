@@ -82,6 +82,23 @@ api.login(new LoginRequest(email, senha)).enqueue(new Callback<>() {
     }
 });` }
   ]},
+  { id: "planos", nome: "Planos", rotas: [
+    { m: "get", path: "/v1/planos", auth: "Público", desc: "Listar planos disponíveis — use o id retornado em planoId ao cadastrar uma empresa",
+      reqBody: null,
+      resBody: [{ id: "<uuid do plano>", nome: "Plano Start", vagasTotais: 30, porteIndicado: "Pequeno" }],
+      react: `const planos = await api("/v1/planos");
+// Selecione um plano e envie o ID no cadastro da empresa:
+const planoId = planos[0].id;
+await api("/v1/empresas", {
+  method: "POST",
+  body: { ...dadosEmpresa, planoId }
+});`,
+      android: `@GET("v1/planos")
+Call<List<PlanoResponse>> listarPlanos();
+
+// PlanoResponse deve ter: id, nome, vagasTotais, porteIndicado.
+// Envie o id selecionado como planoId em EmpresaRequest.` }
+  ]},
   { id: "empresa", nome: "Empresa", rotas: [
     { m: "post", path: "/v1/empresas", auth: "Público", desc: "Cadastrar empresa",
       reqBody: { razaoSocial: "Acme Ltda", nomeFantasia: "Acme", inscricaoEstadual: "123456789", cnpj: "00000000000191", responsavel: "Ana Souza", cep: "01001000", logradouro: "Praça da Sé", numero: "100", complemento: "Sala 1", bairro: "Sé", cidade: "São Paulo", estado: "SP", email: "acme@empresa.com", telefone: "11999990000", senha: "Senha@1234", planoId: "<uuid do plano>" },
