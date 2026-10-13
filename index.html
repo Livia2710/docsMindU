@@ -37,6 +37,7 @@
         <p><strong>Local:</strong> <code>http://localhost:8080</code> — precisa do backend rodando no seu computador (<code>docker compose up</code>).<br>
         <strong>Web:</strong> <code id="web-url-display">https://mindu-api.onrender.com</code> — sempre disponível, mas pode levar até 1 minuto para responder na primeira chamada do dia (o serviço "dorme" quando fica sem uso).</p>
         <p>Toda rota, exceto as marcadas <span class="auth-pill">público</span>, exige o cabeçalho <code>Authorization: Bearer &lt;token&gt;</code>, obtido no login.</p>
+      <p>O login retorna também o tipo da conta. A API identifica a conta pelo token: não envie seu próprio ID em URLs. Após a atualização da API, faça login novamente para receber um token com o tipo da conta. Para sair, apague o token salvo no app/site. Contas Admin são criadas pela equipe e não têm cadastro público.</p>
       </div>
 
       <div class="setup">
