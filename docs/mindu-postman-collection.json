@@ -2,7 +2,7 @@
   "info": {
     "name": "MindU — Backend (roteiro de testes)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Antes de rodar: preencha as variáveis planoId e adminSenha (aba Variables da coleção) e selecione um arquivo de imagem no request 3.1. Rode na ordem: pastas 01 a 06."
+    "description": "Antes de rodar: preencha planoId e adminSenha (aba Variables) e selecione um arquivo no cadastro profissional. Rode as pastas 01 a 06 em ordem. O login retorna token/tipo; use GET /v1/auth/me para id/nome. Login tem limite de 10 tentativas por minuto por IP (429), sem bloqueio por conta."
   },
   "variable": [
     {
@@ -100,6 +100,10 @@
     {
       "key": "tokenAdmin",
       "value": ""
+    },
+    {
+      "key": "anoMes",
+      "value": "2026-10"
     }
   ],
   "item": [
@@ -565,7 +569,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/v1/clientes?empresaId={{empresaId}}",
+              "raw": "{{baseUrl}}/v1/clientes?status=AGUARDANDO_APROVACAO",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -575,8 +579,8 @@
               ],
               "query": [
                 {
-                  "key": "empresaId",
-                  "value": "{{empresaId}}"
+                  "key": "status",
+                  "value": "AGUARDANDO_APROVACAO"
                 }
               ]
             },
@@ -589,7 +593,8 @@
                   "type": "string"
                 }
               ]
-            }
+            },
+            "description": "A empresa autenticada vê seus próprios clientes; o filtro status é opcional."
           }
         }
       ]
@@ -1233,7 +1238,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataAgendamento}}\"\n}",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataAgendamento}}\",\n  \"modalidade\": \"VIRTUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1280,7 +1285,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataAgendamento}}\"\n}",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataAgendamento}}\",\n  \"modalidade\": \"VIRTUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1327,7 +1332,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataForaDisponibilidade}}\"\n}",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataAgendamento}}\",\n  \"modalidade\": \"VIRTUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1354,7 +1359,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/v1/agendamentos/meus?clienteId={{clienteId}}",
+              "raw": "{{baseUrl}}/v1/agendamentos/meus?data={{anoMes}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1365,8 +1370,8 @@
               ],
               "query": [
                 {
-                  "key": "clienteId",
-                  "value": "{{clienteId}}"
+                  "key": "data",
+                  "value": "{{anoMes}}"
                 }
               ]
             },
@@ -1379,7 +1384,8 @@
                   "type": "string"
                 }
               ]
-            }
+            },
+            "description": "O cliente é identificado pelo token; data é um filtro mensal opcional (AAAA-MM)."
           }
         },
         {
@@ -1461,7 +1467,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataAgendamento}}\"\n}",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"dataHora\": \"{{dataAgendamento}}\",\n  \"modalidade\": \"VIRTUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1836,7 +1842,7 @@
           }
         },
         {
-          "name": "6.10 [RN07] Senha errada 1/5",
+          "name": "6.10 Senha inválida 1/5",
           "event": [
             {
               "listen": "test",
@@ -1877,7 +1883,7 @@
           }
         },
         {
-          "name": "6.11 [RN07] Senha errada 2/5",
+          "name": "6.11 Senha inválida 2/5",
           "event": [
             {
               "listen": "test",
@@ -1918,7 +1924,7 @@
           }
         },
         {
-          "name": "6.12 [RN07] Senha errada 3/5",
+          "name": "6.12 Senha inválida 3/5",
           "event": [
             {
               "listen": "test",
@@ -1959,7 +1965,7 @@
           }
         },
         {
-          "name": "6.13 [RN07] Senha errada 4/5",
+          "name": "6.13 Senha inválida 4/5",
           "event": [
             {
               "listen": "test",
@@ -2000,7 +2006,7 @@
           }
         },
         {
-          "name": "6.14 [RN07] Senha errada 5/5",
+          "name": "6.14 Senha inválida 5/5",
           "event": [
             {
               "listen": "test",
@@ -2041,14 +2047,14 @@
           }
         },
         {
-          "name": "6.15 [RN07] Senha CERTA após 5 erros → bloqueado",
+          "name": "6.15 Senha certa depois das tentativas inválidas → login continua funcionando",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 423\", () => pm.response.to.have.status(423));"
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
                 ]
               }
             }
@@ -2079,11 +2085,11 @@
                 }
               }
             },
-            "description": "Para liberar de novo: UPDATE usuario SET tentativas_login = 0, bloqueado_ate = NULL WHERE email = '<clienteEmail>';"
+            "description": "O cliente não é bloqueado por senha errada. O controle atual limita chamadas de login por IP e responde 429 quando excedido."
           }
         }
       ],
-      "description": "Rode por último: os passos 6.10 a 6.15 bloqueiam a conta do cliente por 15 minutos."
+      "description": "Rode por último: testa validações negativas e confirma que senha incorreta não bloqueia a conta; o limite por IP responde 429."
     }
   ]
 }

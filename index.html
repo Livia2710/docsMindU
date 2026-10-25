@@ -33,11 +33,11 @@
 
       <div class="intro">
         <h2>Como usar esta página</h2>
-        <p>Cada rota abaixo abre com um clique e mostra a requisição, a resposta e um exemplo de código pronto — uma aba para o site (React) e outra para o app (Android). Use o seletor <strong>Local / Web</strong> no topo para trocar o endereço em todos os exemplos de uma vez.</p>
+        <p>Clique em uma rota para ver um resumo. O botão <strong>Abrir guia detalhado</strong> leva a uma página própria com pré-requisitos, passos, campos, autenticação, respostas, erros comuns e exemplos para React e Android. Use o seletor <strong>Local / Web</strong> no topo para trocar o endereço em todos os exemplos.</p>
         <p><strong>Local:</strong> <code>http://localhost:8080</code> — precisa do backend rodando no seu computador (<code>docker compose up</code>).<br>
         <strong>Web:</strong> <code id="web-url-display">https://mindu-api.onrender.com</code> — sempre disponível, mas pode levar até 1 minuto para responder na primeira chamada do dia (o serviço "dorme" quando fica sem uso).</p>
         <p>Toda rota, exceto as marcadas <span class="auth-pill">público</span>, exige o cabeçalho <code>Authorization: Bearer &lt;token&gt;</code>, obtido no login.</p>
-      <p>O login retorna também o tipo da conta. A API identifica a conta pelo token: não envie seu próprio ID em URLs. Após a atualização da API, faça login novamente para receber um token com o tipo da conta. Para sair, apague o token salvo no app/site. Contas Admin são criadas pela equipe e não têm cadastro público.</p>
+      <p><strong>Importante sobre o login:</strong> <code>POST /v1/auth/login</code> retorna apenas <code>token</code> e <code>tipo</code>. Depois de salvar o token, chame <code>GET /v1/auth/me</code> com <code>Authorization: Bearer &lt;token&gt;</code> para receber <code>id</code>, <code>nome</code> e <code>email</code>. A API identifica a conta pelo token nas rotas <code>/me</code>. Para sair, apague o token salvo no app/site.</p>
       </div>
 
       <div class="setup">
@@ -68,7 +68,7 @@ export async function api(path, { method = "GET", body, isFormData = false } = {
 
   if (!res.ok) {
     const erro = await res.json().catch(() => ({}));
-    throw new Error(erro.erro || `Erro ${res.status}`);
+    throw new Error(erro.erro || erro.message || `Erro ${res.status}`);
   }
   return res.status === 204 ? null : res.json();
 }</code></pre>
@@ -93,7 +93,7 @@ implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")</code></pre>
                     if (token != null) b.addHeader("Authorization", "Bearer " + token);
                     return chain.proceed(b.build());
                 })
-                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BASIC : HttpLoggingInterceptor.Level.NONE))
                 .build();
 
             retrofit = new Retrofit.Builder()

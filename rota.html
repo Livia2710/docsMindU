@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guia da rota · API MindU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+  <div class="topbar">
+    <h1>MindU · API</h1>
+    <div class="spacer"></div>
+    <div class="env-toggle" role="group" aria-label="Ambiente">
+      <button id="env-local" class="active" data-env="local">Local</button>
+      <button id="env-web" data-env="web">Web</button>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
+    <div class="dl"><a href="index.html">← Todas as rotas</a><a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a></div>
+  </div>
+  <main class="route-detail-shell" id="route-detail"></main>
+  <footer>MindU — documentação da API. Os exemplos são ilustrativos; confira os campos obrigatórios indicados em cada guia.</footer>
+</body>
+</html>

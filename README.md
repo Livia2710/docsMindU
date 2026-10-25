@@ -41,15 +41,15 @@ As Issues servem também como lista do que ainda precisa ser implementado na API
 
 ```
 .
-├── index.html                      # estrutura da página
+├── index.html                      # catálogo de rotas
+├── rota.html                       # modelo da página de detalhe de cada rota
 ├── style.css                       # estilos e paleta (claro/escuro)
 ├── script.js                       # dados das rotas e montagem da página
 ├── mindu-modelagem.html            # artefato de modelagem (link de download no topo)
-├── mindu-postman-collection.json   # coleção Postman (link de download no topo)
+├── docs/
+│   └── mindu-postman-collection.json # coleção Postman (link de download no topo)
 └── README.md
 ```
-
-> Ajuste os nomes acima se algum arquivo do repositório tiver outro nome.
 
 ## Como rodar localmente
 
@@ -76,7 +76,7 @@ Call<Void> excluir(@Path("id") String id);`
 }
 ```
 
-O menu lateral, os badges coloridos por método e o link de Issue da rota são gerados automaticamente.
+O menu lateral, os badges, links para os guias detalhados e links de Issue são gerados automaticamente.
 
 ## Publicação (GitHub Pages)
 

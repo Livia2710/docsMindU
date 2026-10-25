@@ -70,7 +70,11 @@ const RESOURCES = [
   method: "POST",
   body: { email, senha }
 });
-localStorage.setItem("mindu_token", token);`,
+localStorage.setItem("mindu_token", token);
+
+// O login retorna token/tipo. Busque nome e ID com o token recém-salvo.
+const conta = await api("/v1/auth/me");
+// use conta.id, conta.nome, conta.email para preencher o app`,
       android: `@POST("v1/auth/login")
 Call<LoginResponse> login(@Body LoginRequest body);
 
@@ -79,6 +83,14 @@ api.login(new LoginRequest(email, senha)).enqueue(new Callback<>() {
     public void onResponse(Call<LoginResponse> call, Response<LoginResponse> res) {
         String token = res.body().getToken();
         prefs.edit().putString("token", token).apply();
+        api.minhaConta().enqueue(new Callback<>() {
+            public void onResponse(Call<MinhaContaResponse> call, Response<MinhaContaResponse> perfil) {
+                if (perfil.isSuccessful()) {
+                    MinhaContaResponse conta = perfil.body(); // id, nome, email, tipo
+                }
+            }
+            public void onFailure(Call<MinhaContaResponse> call, Throwable error) { }
+        });
     }
 });` },
     { m: "get", path: "/v1/auth/me", auth: "Autenticado", desc: "Obter sua conta e tipo pelo token; não envie seu próprio ID na URL",
@@ -118,7 +130,34 @@ Call<List<PlanoResponse>> listarPlanos();
       react: `await api("/v1/empresas", { method: "POST", body: dadosEmpresa });`,
       android: `@POST("v1/empresas")
 Call<EmpresaResponse> cadastrarEmpresa(@Body EmpresaRequest body);` },
-    { m: "post", path: "/v1/empresas/{id}/matriculas", auth: "Empresa", desc: "Gerar matrículas (?quantidade=5)",
+    { m: "get", path: "/v1/empresas/validar-matricula", auth: "Público", desc: "Validar matrícula antes do cadastro (?codigo=A1B2C3)",
+      reqBody: null, resBody: { empresaId: "<uuid>", nomeFantasia: "Acme" },
+      react: `const empresa = await api("/v1/empresas/validar-matricula?codigo=" + encodeURIComponent(codigo));`,
+      android: `@GET("v1/empresas/validar-matricula")
+Call<EmpresaDaMatriculaResponse> validarMatricula(@Query("codigo") String codigo);` },
+    { m: "get", path: "/v1/empresas/me", auth: "Empresa", desc: "Obter perfil completo da empresa autenticada",
+      reqBody: null, resBody: { id: "<uuid>", nomeFantasia: "Acme", email: "acme@empresa.com", telefone: "11999990000", responsavel: "Ana Souza", cidade: "São Paulo" },
+      react: `const empresa = await api("/v1/empresas/me");`,
+      android: `@GET("v1/empresas/me")
+Call<EmpresaResponse> minhaEmpresa();` },
+    { m: "get", path: "/v1/empresas/{id}", auth: "Empresa/Admin", desc: "Consultar empresa por ID; a API valida a titularidade",
+      reqBody: null, resBody: { id: "<uuid>", nomeFantasia: "Acme", email: "acme@empresa.com", telefone: "11999990000" },
+      react: `const empresa = await api("/v1/empresas/" + empresaId);`,
+      android: `@GET("v1/empresas/{id}")
+Call<EmpresaResponse> empresa(@Path("id") String id);` },
+    { m: "patch", path: "/v1/empresas/me", auth: "Empresa", desc: "Atualizar contato/endereço da empresa autenticada",
+      reqBody: { nomeFantasia: "Acme Saúde", responsavel: "Ana Souza", telefone: "11999990000", cidade: "São Paulo" },
+      resBody: { id: "<uuid>", nomeFantasia: "Acme Saúde", telefone: "11999990000" },
+      react: `await api("/v1/empresas/me", { method: "PATCH", body: alteracoes });`,
+      android: `@PATCH("v1/empresas/me")
+Call<EmpresaResponse> atualizarEmpresa(@Body EmpresaPerfilRequest body);` },
+    { m: "patch", path: "/v1/empresas/{id}", auth: "Empresa/Admin", desc: "Atualizar empresa por ID; a API valida a titularidade",
+      reqBody: { telefone: "11999990000", responsavel: "Ana Souza" },
+      resBody: { id: "<uuid>", telefone: "11999990000" },
+      react: `await api("/v1/empresas/" + id, { method: "PATCH", body: alteracoes });`,
+      android: `@PATCH("v1/empresas/{id}")
+Call<EmpresaResponse> atualizarEmpresa(@Path("id") String id, @Body EmpresaPerfilRequest body);` },
+    { m: "post", path: "/v1/empresas/{id}/matriculas", auth: "Empresa/Admin", desc: "Gerar matrículas (?quantidade=5)",
       reqBody: null,
       resBody: [{ id: "<uuid>", codigo: "A1B2C3", utilizada: false }],
       react: `await api("/v1/empresas/" + empresaId + "/matriculas?quantidade=5", { method: "POST" });`,
@@ -156,6 +195,17 @@ Call<ClienteResponse> cadastrarCliente(@Body ClienteRequest body);` },
       react: `const perfil = await api("/v1/clientes/me");`,
       android: `@GET("v1/clientes/me")
 Call<ClienteResponse> meuPerfil();` },
+    { m: "get", path: "/v1/clientes/{id}", auth: "Cliente/Admin", desc: "Consultar perfil por ID; cliente acessa apenas o próprio cadastro",
+      reqBody: null, resBody: { id: "<uuid>", nome: "Maria Silva", email: "maria@email.com", telefone: "11999990000", status: "APROVADO" },
+      react: `const perfil = await api("/v1/clientes/" + id);`,
+      android: `@GET("v1/clientes/{id}")
+Call<ClienteResponse> cliente(@Path("id") String id);` },
+    { m: "patch", path: "/v1/clientes/me", auth: "Cliente", desc: "Atualizar telefone/endereço do próprio perfil sem enviar ID",
+      reqBody: { telefone: "11999990000", cep: "01001000", logradouro: "Praça da Sé", cidade: "São Paulo", estado: "SP" },
+      resBody: { id: "<uuid>", telefone: "11999990000", cidade: "São Paulo" },
+      react: `await api("/v1/clientes/me", { method: "PATCH", body: contato });`,
+      android: `@PATCH("v1/clientes/me")
+Call<ClienteResponse> atualizarMeuPerfil(@Body ClientePerfilRequest body);` },
     { m: "patch", path: "/v1/clientes/me/dados-sensiveis", auth: "Cliente", desc: "Enviar dados sensíveis do próprio perfil; identidade vem do token",
       reqBody: { cns: "898001234567890", dataNascimento: "1995-03-20", nomeMae: "Ana Silva", genero: "FEMININO" },
       resBody: { id: "<uuid>", status: "APROVADO" },
@@ -168,7 +218,13 @@ Call<ClienteResponse> completarMeuPerfil(@Body DadosSensiveisRequest body);` },
       react: `await api("/v1/clientes/" + id + "/aprovacao?aprovado=true", { method: "PATCH" });`,
       android: `@PATCH("v1/clientes/{id}/aprovacao")
 Call<ClienteResponse> aprovarCliente(@Path("id") String id, @Query("aprovado") boolean aprovado);` },
-    { m: "patch", path: "/v1/clientes/{id}/dados-sensiveis", auth: "Cliente", desc: "Cadastro — etapa 2 (CNS, nascimento, gênero)",
+    { m: "patch", path: "/v1/clientes/{id}", auth: "Cliente/Admin", desc: "Atualizar telefone/endereço do cliente; a API valida titularidade",
+      reqBody: { telefone: "11999990000", cep: "01001000", cidade: "São Paulo" },
+      resBody: { id: "<uuid>", telefone: "11999990000", cidade: "São Paulo" },
+      react: `await api("/v1/clientes/" + id, { method: "PATCH", body: alteracoes });`,
+      android: `@PATCH("v1/clientes/{id}")
+Call<ClienteResponse> atualizarCliente(@Path("id") String id, @Body ClientePerfilRequest body);` },
+    { m: "patch", path: "/v1/clientes/{id}/dados-sensiveis", auth: "Cliente/Admin", desc: "Cadastro — etapa 2 (CNS, nascimento, gênero)",
       reqBody: { cns: "898001234567890", dataNascimento: "1995-03-20", nomeMae: "Ana Silva", genero: "FEMININO" },
       resBody: { id: "<uuid>", status: "APROVADO" },
       react: `await api("/v1/clientes/" + id + "/dados-sensiveis", { method: "PATCH", body: dados });`,
@@ -183,15 +239,15 @@ Call<List<ClienteResponse>> listarClientes(@Query("status") String status);` }
   ]},
   { id: "profissional", nome: "Profissional", rotas: [
     { m: "post", path: "/v1/profissionais", auth: "Público", desc: "Cadastro — multipart/form-data (campos soltos + foto)", isForm: true,
-      reqBody: { nome: "Dr. João Lima", email: "joao@mindu.com", senha: "Senha@1234", tipo: "PSICOLOGO", tags: ["ansiedade", "TCC"], fotoCarteirinha: "(arquivo)" },
+      reqBody: { nome: "João Lima", email: "joao@mindu.com", senha: "Senha@1234", tipo: "(opcional)", tags: "(opcional)", fotoCarteirinha: "(opcional)" },
       resBody: { id: "<uuid>", status: "PENDENTE" },
       react: `const form = new FormData();
 form.append("nome", nome);
 form.append("email", email);
 form.append("senha", senha);
-form.append("tipo", tipo); // PSICOLOGO | PSIQUIATRA | TERAPEUTA
-tags.forEach(t => form.append("tags", t)); // repita a chave por tag
-form.append("fotoCarteirinha", arquivoInput.files[0]);
+if (tipo) form.append("tipo", tipo); // opcional no cadastro inicial
+tags.forEach(t => form.append("tags", t)); // opcional; repita a chave por tag
+if (arquivoInput.files[0]) form.append("fotoCarteirinha", arquivoInput.files[0]);
 
 await api("/v1/profissionais", { method: "POST", body: form, isFormData: true });`,
       android: `@Multipart
@@ -208,6 +264,17 @@ Call<ProfissionalResponse> cadastrar(
 // montando a foto a partir de um File:
 RequestBody fotoBody = RequestBody.create(arquivoFoto, MediaType.parse("image/jpeg"));
 MultipartBody.Part foto = MultipartBody.Part.createFormData("fotoCarteirinha", arquivoFoto.getName(), fotoBody);` },
+    { m: "get", path: "/v1/profissionais/conta/perfil", auth: "Profissional", desc: "Consultar perfil da conta profissional autenticada",
+      reqBody: null, resBody: { id: "<uuid>", nome: "João Lima", bio: "Atendimento acolhedor", tipo: "PSICOLOGO", tags: ["ansiedade"], status: "PENDENTE" },
+      react: `const perfil = await api("/v1/profissionais/conta/perfil");`,
+      android: `@GET("v1/profissionais/conta/perfil")
+Call<ProfissionalResponse> meuPerfil();` },
+    { m: "patch", path: "/v1/profissionais/{id}", auth: "Profissional", desc: "Atualizar dados textuais do próprio perfil",
+      reqBody: { nome: "João Lima", telefone: "11999990000", bio: "Atendimento acolhedor", tipo: "PSICOLOGO", tags: ["ansiedade"] },
+      resBody: { id: "<uuid>", nome: "João Lima", bio: "Atendimento acolhedor", tags: ["ansiedade"] },
+      react: `await api("/v1/profissionais/" + id, { method: "PATCH", body: dadosPerfil });`,
+      android: `@PATCH("v1/profissionais/{id}")
+Call<ProfissionalResponse> atualizarPerfil(@Path("id") String id, @Body ProfissionalPerfilRequest body);` },
     { m: "patch", path: "/v1/profissionais/{id}/aprovacao", auth: "Admin", desc: "Aprovar ou rejeitar profissional (?aprovado=true)",
       reqBody: null,
       resBody: { id: "<uuid>", status: "APROVADO" },
@@ -226,6 +293,17 @@ Call<LocalResponse> adicionarLocal(@Path("id") String id, @Body LocalRequest bod
       react: `await api("/v1/profissionais/" + id + "/disponibilidade", { method: "PUT", body: janelas });`,
       android: `@PUT("v1/profissionais/{id}/disponibilidade")
 Call<List<DisponibilidadeResponse>> definirDisponibilidade(@Path("id") String id, @Body List<DisponibilidadeRequest> body);` },
+    { m: "patch", path: "/v1/profissionais/{id}/perfil", auth: "Profissional", desc: "Enviar foto/banner: PNG ou JPEG até 5 MB cada", isForm: true,
+      reqBody: { foto: "(arquivo opcional)", fotoBanner: "(arquivo opcional)" },
+      resBody: { id: "<uuid>", nome: "João Lima", status: "APROVADO" },
+      react: `const form = new FormData();
+if (foto) form.append("foto", foto);
+if (banner) form.append("fotoBanner", banner);
+await api("/v1/profissionais/" + id + "/perfil", { method: "PATCH", body: form, isFormData: true });`,
+      android: `@Multipart
+@PATCH("v1/profissionais/{id}/perfil")
+Call<ProfissionalResponse> enviarImagens(@Path("id") String id,
+    @Part MultipartBody.Part foto, @Part MultipartBody.Part fotoBanner);` },
     { m: "get", path: "/v1/profissionais", auth: "Público", desc: "Buscar profissionais aprovados (?modalidade=&nome=&especialidade=)",
       reqBody: null,
       resBody: [{ id: "<uuid>", nome: "Dr. João Lima", tipo: "PSICOLOGO", tags: ["ansiedade"] }],
@@ -251,13 +329,13 @@ Call<ProfissionalDetalheResponse> detalhes(@Path("id") String id);` },
 Call<List<LocalDateTime>> horarios(@Path("id") String id, @Body ConsultaHorariosRequest body);` },
     { m: "get", path: "/v1/profissionais/{id}/foto", auth: "Público", desc: "Baixar a foto de perfil do profissional aprovado",
       reqBody: null,
-      resBody: null,
+      resBody: "Imagem PNG em bytes (resposta binária, não é JSON)",
       react: `const fotoUrl = BASE_URL + "/v1/profissionais/" + profissionalId + "/foto";`,
       android: `@GET("v1/profissionais/{id}/foto")
 Call<ResponseBody> foto(@Path("id") String id);` },
     { m: "get", path: "/v1/profissionais/{id}/banner", auth: "Público", desc: "Baixar o banner do profissional aprovado",
       reqBody: null,
-      resBody: null,
+      resBody: "Imagem PNG em bytes (resposta binária, não é JSON)",
       react: `const bannerUrl = BASE_URL + "/v1/profissionais/" + profissionalId + "/banner";`,
       android: `@GET("v1/profissionais/{id}/banner")
 Call<ResponseBody> banner(@Path("id") String id);` }
@@ -296,30 +374,30 @@ Call<List<AgendamentoResponse>> listarAgendamentos();` }
   ]},
   { id: "agendamento", nome: "Agendamento", rotas: [
     { m: "post", path: "/v1/agendamentos", auth: "Cliente", desc: "Agendar uma consulta",
-      reqBody: { profissionalId: "<uuid>", dataHora: "2026-10-20T09:00:00" },
-      resBody: { id: "<uuid>", status: "AGENDADO" },
+      reqBody: { profissionalId: "<uuid>", dataHora: "2026-10-20T09:00:00", modalidade: "VIRTUAL" },
+      resBody: { id: "<uuid>", status: "AGENDADO", dataHora: "2026-10-20T09:00:00", modalidade: "VIRTUAL" },
       react: `await api("/v1/agendamentos", { method: "POST", body: dadosAgendamento });`,
       android: `@POST("v1/agendamentos")
 Call<AgendamentoResponse> agendar(@Body AgendamentoRequest body);` },
-    { m: "get", path: "/v1/agendamentos/meus", auth: "Cliente", desc: "Listar meus agendamentos; cliente é identificado pelo token",
+    { m: "get", path: "/v1/agendamentos/meus", auth: "Cliente", desc: "Meus agendamentos; filtro mensal opcional ?data=2026-10",
       reqBody: null,
       resBody: [{ id: "<uuid>", status: "AGENDADO", dataHora: "2026-10-05T10:00:00" }],
-      react: `const meus = await api("/v1/agendamentos/meus");`,
+      react: `const meus = await api("/v1/agendamentos/meus?data=2026-10");`,
       android: `@GET("v1/agendamentos/meus")
-Call<List<AgendamentoResponse>> meusAgendamentos();` },
-    { m: "get", path: "/v1/agendamentos/minha-agenda", auth: "Profissional", desc: "Listar agendamentos do profissional autenticado",
+Call<List<AgendamentoResponse>> meusAgendamentos(@Query("data") String anoMes);` },
+    { m: "get", path: "/v1/agendamentos/minha-agenda", auth: "Profissional", desc: "Agenda própria; filtro mensal opcional ?data=2026-10",
       reqBody: null,
       resBody: [{ id: "<uuid>", clienteNome: "Maria Silva", status: "AGENDADO", dataHora: "2026-10-20T09:00:00" }],
-      react: `const agenda = await api("/v1/agendamentos/minha-agenda");`,
+      react: `const agenda = await api("/v1/agendamentos/minha-agenda?data=2026-10");`,
       android: `@GET("v1/agendamentos/minha-agenda")
-Call<List<AgendamentoResponse>> minhaAgenda();` },
-    { m: "patch", path: "/v1/agendamentos/{id}/cancelamento", auth: "Cliente/Profissional", desc: "Cancelar um agendamento",
+Call<List<AgendamentoResponse>> minhaAgenda(@Query("data") String anoMes);` },
+    { m: "patch", path: "/v1/agendamentos/{id}/cancelamento", auth: "Cliente/Profissional/Admin", desc: "Cancelar um agendamento",
       reqBody: null,
       resBody: { id: "<uuid>", status: "CANCELADO" },
       react: `await api("/v1/agendamentos/" + id + "/cancelamento", { method: "PATCH" });`,
       android: `@PATCH("v1/agendamentos/{id}/cancelamento")
 Call<AgendamentoResponse> cancelar(@Path("id") String id);` },
-    { m: "patch", path: "/v1/agendamentos/{id}/horario", auth: "Cliente/Profissional", desc: "Reagendar uma consulta; novo horário vai no body",
+    { m: "patch", path: "/v1/agendamentos/{id}/horario", auth: "Cliente/Profissional/Admin", desc: "Reagendar uma consulta; novo horário vai no body",
       reqBody: { dataHora: "2026-10-21T09:00:00" },
       resBody: { id: "<uuid>", status: "AGENDADO", dataHora: "2026-10-21T09:00:00" },
       react: `await api("/v1/agendamentos/" + id + "/horario", {
@@ -349,8 +427,24 @@ const ERROS_COMUNS = {
   ],
   "POST /v1/auth/login": [
     { codigo: "401", motivo: "e-mail ou senha incorretos", correcao: "confira as credenciais; se for logo após o deploy, confirme que o seed de admins rodou (variável MINDU_ADMIN_SENHA preenchida)" },
-    { codigo: "423", motivo: "conta bloqueada após 5 tentativas erradas (RN07)", correcao: "aguarde 15 minutos, ou no banco: UPDATE usuario SET tentativas_login = 0, bloqueado_ate = NULL WHERE email = '...'" },
+    { codigo: "429", motivo: "limite de 10 tentativas de login por minuto por IP", correcao: "aguarde o tempo indicado no cabeçalho Retry-After e tente novamente" },
     { codigo: "CORS", motivo: "requisição bloqueada pelo navegador antes de chegar na API (só no React)", correcao: "confirme que a origem do site está em CORS_ORIGENS no Render" }
+  ],
+  "GET /v1/empresas/validar-matricula": [
+    { codigo: "404", motivo: "código de matrícula inexistente", correcao: "confira o código e tente validar novamente" },
+    { codigo: "409", motivo: "matrícula já utilizada", correcao: "solicite outro código à empresa" }
+  ],
+  "POST /v1/clientes": [
+    { codigo: "400", motivo: "matrícula não pertence à empresa informada", correcao: "valide o código e use o empresaId retornado" },
+    { codigo: "409", motivo: "email ou matrícula já utilizados", correcao: "use outro email ou peça uma matrícula disponível" }
+  ],
+  "POST /v1/profissionais": [
+    { codigo: "400", motivo: "campo obrigatório ausente ou imagem inválida", correcao: "envie nome/email/senha; imagens devem ser PNG/JPEG até 5 MB" },
+    { codigo: "409", motivo: "email já cadastrado", correcao: "use outro email ou entre na conta existente" }
+  ],
+  "PATCH /v1/profissionais/{id}/perfil": [
+    { codigo: "400", motivo: "arquivo inválido ou maior que o limite", correcao: "envie uma imagem PNG/JPEG válida de até 5 MB" },
+    { codigo: "403", motivo: "perfil não pertence à conta autenticada", correcao: "use o token do próprio profissional" }
   ],
   "POST /v1/empresas": [
     { codigo: "409", motivo: "CNPJ ou razão social já cadastrados (RN02)", correcao: "use um CNPJ/razão social diferentes" },
@@ -455,8 +549,8 @@ function json(value) {
   return value === null ? null : JSON.stringify(value, null, 2);
 }
 
-function anchorId(resId, path) {
-  return `${resId}-${path.replace(/[/{}]/g, "")}`;
+function anchorId(resId, path, method) {
+  return resId + "-" + method + "-" + path.replace(/[/{}]/g, "");
 }
 
 /* ========== Construção da página ========== */
@@ -465,7 +559,7 @@ function buildNav() {
   nav.innerHTML = RESOURCES.map(resource =>
     `<div class="grp">${resource.nome}</div>` +
     resource.rotas.map(route =>
-      `<a href="#${anchorId(resource.id, route.path)}"><span class="nm ${route.m}">${route.m.toUpperCase()}</span><span class="np">${route.path}</span></a>`
+      `<a href="#${anchorId(resource.id, route.path, route.m)}"><span class="nm ${route.m}">${route.m.toUpperCase()}</span><span class="np">${route.path}</span></a>`
     ).join("")
   ).join("");
 }
@@ -478,10 +572,19 @@ function buildRoutes() {
       ${resource.rotas.map((route, index) => routeHTML(resource.id, route, index)).join("")}
     </section>
   `).join("");
+
+  RESOURCES.forEach(resource => resource.rotas.forEach((route, index) => {
+    const card = document.getElementById(anchorId(resource.id, route.path, route.m));
+    const link = document.createElement("a");
+    link.className = "detail-link";
+    link.href = "rota.html?rota=" + encodeURIComponent(route.m.toUpperCase() + " " + route.path);
+    link.textContent = "Abrir guia detalhado desta rota →";
+    card.querySelector(".body").prepend(link);
+  }));
 }
 
 function routeHTML(resId, rt, i) {
-  const anchor = anchorId(resId, rt.path);
+  const anchor = anchorId(resId, rt.path, rt.m);
   const uid = `${resId}-${i}`;
   const issueHref = issueURL(
     `[Rota] ${rt.m.toUpperCase()} ${rt.path}`,
@@ -522,6 +625,141 @@ function routeHTML(resId, rt, i) {
       ${errosHTML}
     </div>
   </div>`;
+}
+
+const ROUTE_GUIDES = {
+  "POST /v1/auth/login": {
+    summary: "O login devolve somente token e tipo. Para carregar ID, nome e email, faça uma segunda chamada autenticada a GET /v1/auth/me.",
+    steps: [
+      "Envie email e senha para POST /v1/auth/login.",
+      "Guarde token e tipo. O token autentica as próximas chamadas; tipo ajuda a direcionar a interface.",
+      "Envie GET /v1/auth/me com Authorization: Bearer <token> para obter id, nome e email.",
+      "Use as rotas /me sempre que possível. Elas identificam a conta pelo token."
+    ],
+    notes: ["Senha ou email incorreto retorna 401.", "O limite atual é de 10 tentativas por minuto por IP; 429 inclui Retry-After.", "Após trocar a senha, faça login novamente: tokens anteriores são invalidados."]
+  },
+  "GET /v1/auth/me": {
+    summary: "Esta chamada completa o login no front: retorna id, nome, email e tipo da conta autenticada.",
+    steps: ["Leia o token salvo após o login.", "Envie Authorization: Bearer <token>.", "Use o tipo para abrir a área Cliente, Empresa, Profissional ou Admin."]
+  },
+  "POST /v1/clientes": {
+    summary: "O cadastro precisa do ID da empresa e de uma matrícula disponível. Valide o código antes de enviar o cadastro.",
+    steps: ["Chame GET /v1/empresas/validar-matricula?codigo=... usando o código digitado.", "Guarde empresaId da resposta e mostre nomeFantasia.", "Envie nome, email, senha, empresaId e matricula para esta rota.", "Depois do cadastro, aguarde a aprovação da empresa."]
+  },
+  "GET /v1/empresas/validar-matricula": {
+    summary: "Valida o código público de matrícula e identifica a empresa associada.",
+    steps: ["Envie o código na query string; no React, aplique encodeURIComponent.", "Com 200, use empresaId e mostre nomeFantasia.", "404 significa código inválido; 409 significa que já foi utilizado."]
+  },
+  "POST /v1/profissionais": {
+    summary: "Cadastro multipart. Apenas nome, email e senha são obrigatórios; tipo, tags e fotoCarteirinha são opcionais.",
+    steps: ["Monte um FormData com nome, email e senha.", "Inclua tipo/tags/fotoCarteirinha somente se disponíveis.", "Não defina Content-Type manualmente no fetch: o navegador cria o boundary.", "A conta nasce PENDENTE e precisa de aprovação."]
+  },
+  "POST /v1/agendamentos": {
+    summary: "Cliente autenticado escolhe um horário livre e uma modalidade oferecida pelo profissional.",
+    steps: ["Consulte POST /v1/profissionais/{id}/horarios-disponiveis para uma data.", "Selecione um horário retornado e uma modalidade dos locais cadastrados.", "Envie profissionalId, dataHora e modalidade; clienteId é obtido do token.", "Se retornar 409, atualize os horários e escolha outro."]
+  },
+  "GET /v1/agendamentos/meus": {
+    summary: "Lista os agendamentos da conta cliente. Use ?data=AAAA-MM para filtrar um mês."
+  },
+  "GET /v1/agendamentos/minha-agenda": {
+    summary: "Lista a agenda do profissional autenticado. Use ?data=AAAA-MM para filtrar um mês."
+  },
+  "PATCH /v1/clientes/me/dados-sensiveis": {
+    summary: "Envia CNS, nascimento, nome da mãe e gênero da própria conta; só é permitido após aprovação da empresa."
+  },
+  "PATCH /v1/profissionais/{id}/perfil": {
+    summary: "Atualiza apenas foto e banner. PNG/JPEG, no máximo 5 MB cada; o servidor valida e converte para PNG."
+  }
+};
+
+const FIELD_HELP = {
+  nome: "Nome exibido no perfil.",
+  email: "Email usado para entrar na conta; deve ser válido.",
+  senha: "Senha de acesso. No cadastro, use pelo menos 8 caracteres.",
+  senhaAtual: "Senha atual, necessária para confirmar a troca.",
+  novaSenha: "Nova senha, com pelo menos 8 caracteres.",
+  empresaId: "ID da empresa retornado pela validação da matrícula.",
+  matricula: "Código de matrícula fornecido pela empresa.",
+  planoId: "ID de um plano retornado por GET /v1/planos.",
+  telefone: "Telefone de contato.",
+  cep: "CEP do endereço.",
+  logradouro: "Rua/avenida do endereço.",
+  cidade: "Cidade do endereço.",
+  estado: "UF do endereço.",
+  cns: "Número CNS; a API protege esse dado ao armazená-lo.",
+  dataNascimento: "Data de nascimento no formato AAAA-MM-DD.",
+  nomeMae: "Nome da mãe informado no cadastro sensível.",
+  genero: "Valor aceito pelo enum Genero da API.",
+  tipo: "Categoria profissional aceita pelo enum TipoProfissional.",
+  tags: "Lista de especialidades/palavras usadas na busca.",
+  fotoCarteirinha: "Arquivo de imagem opcional no cadastro inicial.",
+  foto: "Imagem PNG/JPEG de até 5 MB.",
+  fotoBanner: "Imagem PNG/JPEG de até 5 MB.",
+  profissionalId: "ID do profissional selecionado na busca.",
+  dataHora: "Data e hora local no formato ISO, por exemplo AAAA-MM-DDTHH:mm:ss.",
+  modalidade: "Modalidade que o profissional oferece, como VIRTUAL ou PRESENCIAL.",
+  data: "Data no formato AAAA-MM-DD.",
+  aprovado: "true para aprovar; false para rejeitar."
+};
+
+function requestFieldsHTML(route) {
+  let sample = route.reqBody;
+  if (Array.isArray(sample)) sample = sample[0];
+  if (!sample || typeof sample !== "object") return "";
+  const key = route.m.toUpperCase() + " " + route.path;
+  const isPatch = route.m === "patch";
+  const optionalProfessionalFields = key === "POST /v1/profissionais";
+  return '<h3>Campos do corpo</h3><ul>' + Object.keys(sample).map(name => {
+    let note = FIELD_HELP[name] || "Use o valor e formato ilustrados no exemplo.";
+    if (optionalProfessionalFields && ["tipo", "tags", "fotoCarteirinha"].includes(name)) note += " Opcional no cadastro inicial.";
+    else if (isPatch) note += " Omitir mantém o valor atual.";
+    return '<li><code>' + esc(name) + '</code> — ' + esc(note) + '</li>';
+  }).join("") + '</ul>';
+}
+
+function routeGuideHTML(route) {
+  const key = route.m.toUpperCase() + " " + route.path;
+  const guide = ROUTE_GUIDES[key] || {};
+  const steps = guide.steps || [
+    "Confira o ambiente selecionado e substitua parâmetros como {id} por valores reais.",
+    route.auth === "Público" ? "A rota é pública; não precisa token." : "Envie Authorization: Bearer <token> obtido no login.",
+    route.reqBody ? (route.isForm ? "Envie os campos no formato multipart/form-data." : "Envie JSON com Content-Type: application/json.") : "Não há corpo JSON; confira parâmetros de query no caminho."
+  ];
+  const notes = guide.notes || [];
+  const authText = route.auth === "Público" ? "Autenticação não necessária." : "Authorization: Bearer <token>.";
+  const formatText = route.isForm ? "multipart/form-data; deixe o navegador montar o boundary." : (route.reqBody ? "application/json" : "Sem corpo JSON.");
+  const paramText = route.path.includes("{") ? "Troque {id} pelo ID real, sem as chaves." : "";
+  return '<section class="route-guide">' +
+    '<h3>Quando usar</h3><p>' + esc(guide.summary || route.desc) + '</p>' +
+    '<h3>Passo a passo</h3><ol>' + steps.map(item => '<li>' + esc(item) + '</li>').join("") + '</ol>' +
+    '<h3>Autenticação e formato</h3><ul><li>' + esc(authText) + '</li><li>' + esc(formatText) + '</li>' +
+    (paramText ? '<li>' + esc(paramText) + '</li>' : '') + '</ul>' +
+    requestFieldsHTML(route) +
+    (notes.length ? '<h3>Observações</h3><ul>' + notes.map(item => '<li>' + esc(item) + '</li>').join("") + '</ul>' : '') +
+    '</section>';
+}
+
+function renderRouteDetail() {
+  const mount = document.getElementById("route-detail");
+  const selected = new URLSearchParams(location.search).get("rota");
+  let found = null;
+  RESOURCES.forEach(resource => resource.rotas.forEach((route, index) => {
+    if (route.m.toUpperCase() + " " + route.path === selected) found = { resource, route, index };
+  }));
+  if (!found) {
+    mount.innerHTML = '<a class="back-link" href="index.html">← Todas as rotas</a><h2>Rota não encontrada</h2><p>Volte ao catálogo e abra o guia da rota desejada.</p>';
+    return;
+  }
+  const title = found.route.m.toUpperCase() + " " + found.route.path;
+  document.title = title + " · API MindU";
+  mount.innerHTML = '<a class="back-link" href="index.html">← Todas as rotas</a>' +
+    '<p class="eyebrow">' + esc(found.resource.nome) + ' · Guia de integração</p>' +
+    '<h2 class="detail-title">' + esc(title) + '</h2>' +
+    '<p class="detail-lead">' + esc(found.route.desc) + '</p>' +
+    '<div id="detail-card">' + routeHTML(found.resource.id, found.route, found.index) + '</div>';
+  const card = mount.querySelector(".route");
+  card.classList.add("open", "detail-route");
+  card.querySelector(".body").prepend(document.createRange().createContextualFragment(routeGuideHTML(found.route)));
 }
 
 function switchTab(uid, which, button) {
@@ -586,8 +824,11 @@ function init() {
   }
 
   syncTopbar();
-  buildNav();
-  buildRoutes();
+  if (document.getElementById("routes")) {
+    buildNav();
+    buildRoutes();
+  }
+  if (document.getElementById("route-detail")) renderRouteDetail();
   setupTabs();
   setEnv("local");
   initializeTheme();
