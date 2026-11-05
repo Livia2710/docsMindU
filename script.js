@@ -180,7 +180,12 @@ Call<DashboardResponse> meuDashboard();` },
       resBody: { matriculasDisponiveis: 25, matriculasUsadas: 5, clientesAprovados: 4 },
       react: `const dash = await api("/v1/empresas/" + empresaId + "/dashboard");`,
       android: `@GET("v1/empresas/{id}/dashboard")
-Call<DashboardResponse> getDashboard(@Path("id") String empresaId);` }
+Call<DashboardResponse> getDashboard(@Path("id") String empresaId);` },
+    { m: "delete", path: "/v1/clientes/{id}", auth: "Empresa", desc: "Excluir um funcionário da própria empresa; remove também os agendamentos dele",
+      reqBody: null, resBody: "204 No Content",
+      react: `await api("/v1/clientes/" + clienteId, { method: "DELETE" });`,
+      android: `@DELETE("v1/clientes/{id}")
+Call<Void> excluirFuncionario(@Path("id") String clienteId);` }
   ]},
   { id: "cliente", nome: "Cliente", rotas: [
     { m: "post", path: "/v1/clientes", auth: "Público", desc: "Cadastro — etapa 1 (com matrícula)",
@@ -370,7 +375,22 @@ Call<List<EmpresaResponse>> listarEmpresas();` },
       resBody: [{ id: "<uuid>", clienteNome: "Maria Silva", profissionalNome: "Dr. João Lima", status: "AGENDADO" }],
       react: `const agendamentos = await api("/v1/admin/agendamentos");`,
       android: `@GET("v1/admin/agendamentos")
-Call<List<AgendamentoResponse>> listarAgendamentos();` }
+Call<List<AgendamentoResponse>> listarAgendamentos();` },
+    { m: "delete", path: "/v1/admin/empresas/{id}", auth: "Admin", desc: "Excluir uma empresa, seus funcionários, matrículas e agendamentos associados",
+      reqBody: null, resBody: "204 No Content",
+      react: `await api("/v1/admin/empresas/" + empresaId, { method: "DELETE" });`,
+      android: `@DELETE("v1/admin/empresas/{id}")
+Call<Void> excluirEmpresa(@Path("id") String empresaId);` },
+    { m: "delete", path: "/v1/admin/profissionais/{id}", auth: "Admin", desc: "Excluir profissional e agendamentos associados",
+      reqBody: null, resBody: "204 No Content",
+      react: `await api("/v1/admin/profissionais/" + profissionalId, { method: "DELETE" });`,
+      android: `@DELETE("v1/admin/profissionais/{id}")
+Call<Void> excluirProfissional(@Path("id") String profissionalId);` },
+    { m: "delete", path: "/v1/admin/clientes/{id}", auth: "Admin", desc: "Excluir um cliente e seus agendamentos associados",
+      reqBody: null, resBody: "204 No Content",
+      react: `await api("/v1/admin/clientes/" + clienteId, { method: "DELETE" });`,
+      android: `@DELETE("v1/admin/clientes/{id}")
+Call<Void> excluirCliente(@Path("id") String clienteId);` }
   ]},
   { id: "agendamento", nome: "Agendamento", rotas: [
     { m: "post", path: "/v1/agendamentos", auth: "Cliente", desc: "Agendar uma consulta",
@@ -518,6 +538,22 @@ const ERROS_COMUNS = {
   ],
   "GET /v1/admin/profissionais/pendentes": [
     { codigo: "403", motivo: "token não é de uma conta Admin", correcao: "faça login com uma conta Admin seedada pela equipe" }
+  ],
+  "DELETE /v1/admin/empresas/{id}": [
+    { codigo: "404", motivo: "empresa não encontrada", correcao: "confira o ID da empresa" },
+    { codigo: "403", motivo: "token não é de uma conta Admin", correcao: "entre com uma conta Admin" }
+  ],
+  "DELETE /v1/admin/profissionais/{id}": [
+    { codigo: "404", motivo: "profissional não encontrado", correcao: "confira o ID do profissional" },
+    { codigo: "403", motivo: "token não é de uma conta Admin", correcao: "entre com uma conta Admin" }
+  ],
+  "DELETE /v1/admin/clientes/{id}": [
+    { codigo: "404", motivo: "cliente não encontrado", correcao: "confira o ID do cliente" },
+    { codigo: "403", motivo: "token não é de uma conta Admin", correcao: "entre com uma conta Admin" }
+  ],
+  "DELETE /v1/clientes/{id}": [
+    { codigo: "403", motivo: "o cliente não pertence à empresa autenticada", correcao: "use a conta da empresa vinculada a esse funcionário" },
+    { codigo: "404", motivo: "cliente não encontrado", correcao: "confira o ID do funcionário" }
   ],
   "POST /v1/agendamentos": [
     { codigo: "409", motivo: "já existe um agendamento nesse horário (RN10)", correcao: "escolha outro horário, ou cancele o agendamento existente" },
