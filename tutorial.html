@@ -70,12 +70,19 @@
       <pre data-label="CMD · Clonar backend"><code>
 git clone https://github.com/Livia2710/javaMindU.git
 cd javaMindU</code></pre>
+      <p>Antes de iniciar, configure a senha local dos quatro admins. No cmd.exe, abra o Bloco de Notas:</p>
+      <pre data-label="CMD · criar configuração local"><code>notepad .env</code></pre>
+      <p>Digite a linha abaixo usando a senha que você já recebeu. Salve o arquivo exatamente como <code>.env</code> (sem <code>.txt</code>) na raiz de <code>javaMindU</code>. O arquivo é ignorado pelo Git e não deve ser enviado ao repositório.</p>
+      <pre data-label="Conteúdo do arquivo .env"><code>MINDU_ADMIN_SENHA=COLOQUE_A_SENHA_LOCAL_AQUI</code></pre>
+      <p>Essa senha será usada para os emails <code>livia@mindu.local</code>, <code>sabrina@mindu.local</code>, <code>manuela@mindu.local</code> e <code>tinin@mindu.local</code> no banco local.</p>
       <p>Na pasta <code>javaMindU</code>, construa a imagem da API e inicie os dois serviços:</p>
       <pre data-label="CMD · iniciar API e banco"><code>docker compose -f docker-compose.local.yml up --build</code></pre>
-      <p>Na primeira execução, o Docker baixa as imagens e compila o backend, então pode demorar. Deixe o terminal aberto para acompanhar os logs. Quando a API iniciar, estará em <code>http://localhost:8080</code>.</p>
-      <p>Para deixar os containers em segundo plano, use <code>-d</code> e acompanhe os logs da API com o segundo comando:</p>
-      <pre data-label="CMD · segundo plano e logs"><code>docker compose -f docker-compose.local.yml up --build -d
-docker compose -f docker-compose.local.yml logs -f api</code></pre>
+      <p>Na primeira execução, o Docker baixa as imagens e compila o backend, então pode demorar. Sem a opção <code>-d</code>, os logs ficam nesta janela e ela precisa continuar aberta. Quando a API iniciar, estará em <code>http://localhost:8080</code>.</p>
+      <p>Para deixar API e banco em segundo plano e liberar o CMD, inicie com <code>-d</code>. Depois que o comando terminar, você pode fechar essa janela:</p>
+      <pre data-label="CMD · iniciar em segundo plano"><code>docker compose -f docker-compose.local.yml up --build -d</code></pre>
+      <p>O Docker Desktop e o computador precisam continuar ligados. Para acompanhar os logs sem parar os containers, abra outro CMD e execute:</p>
+      <pre data-label="CMD · acompanhar logs"><code>docker compose -f docker-compose.local.yml logs -f api</code></pre>
+      <p>Pressionar <code>Ctrl+C</code> nessa janela encerra apenas a visualização dos logs; API e banco continuam rodando.</p>
       <p>Para parar a API e o banco sem apagar os dados locais, pressione <code>Ctrl+C</code> no terminal em primeiro plano ou execute:</p>
       <pre data-label="CMD · parar serviços"><code>docker compose -f docker-compose.local.yml down</code></pre>
     </section>
@@ -85,6 +92,14 @@ docker compose -f docker-compose.local.yml logs -f api</code></pre>
       <p>Com os containers ativos, abra outra janela do cmd.exe e faça uma chamada para um endpoint público:</p>
       <pre data-label="CMD · verificar API"><code>curl.exe http://localhost:8080/v1/planos</code></pre>
       <p>A resposta aparecerá no cmd.exe, e a requisição também aparecerá nos logs da API. Se os planos ainda não tiverem sido cadastrados no banco local, uma lista vazia pode ser normal; isso não significa, por si só, que a conexão falhou.</p>
+      <p>Para consultar diretamente o PostgreSQL, abra o cliente <code>psql</code> que já vem no container do banco:</p>
+      <pre data-label="CMD · abrir PostgreSQL"><code>docker compose -f docker-compose.local.yml exec db psql -U postgres -d mindu</code></pre>
+      <p>Dentro do <code>psql</code>, liste as tabelas e consulte os planos e admins:</p>
+      <pre data-label="SQL · consultar planos e admins"><code>\dt
+SELECT nome, vagas_totais, porte_indicado FROM plano ORDER BY nome;
+SELECT u.nome, u.email FROM usuario u JOIN admin a ON a.id = u.id ORDER BY u.nome;
+\q</code></pre>
+      <p><code>\q</code> sai do <code>psql</code>. As tabelas aparecem depois que a API inicia e cria o schema.</p>
       <div class="tutorial-callout tutorial-callout-warn">
         <strong>Banco local</strong>
         <p>O banco local começa separado e não contém os dados do Render. Use dados fictícios para os testes. O volume Docker mantém os dados locais entre inicializações.</p>
@@ -104,7 +119,7 @@ docker compose -f docker-compose.local.yml logs -f api</code></pre>
       <pre data-label="Arquivo .env.local"><code>VITE_API_BASE_URL=http://localhost:8080</code></pre>
       <pre data-label="CMD · dependências e React"><code>npm install
 npm run dev</code></pre>
-      <p>Abra <code>http://localhost:5173</code>. Se o arquivo <code>.env.local</code> mudar enquanto o Vite estiver ativo, pare e inicie o Vite novamente. Não envie o arquivo <code>.env.local</code> ao GitHub.</p>
+      <p>Abra <code>http://localhost:5173</code>. O CMD que executa <code>npm run dev</code> precisa continuar aberto enquanto Sabrina usar o site. Se o arquivo <code>.env.local</code> mudar enquanto o Vite estiver ativo, pare e inicie o Vite novamente. Não envie o arquivo <code>.env.local</code> ao GitHub.</p>
       <p>A API já permite a origem local do Vite (<code>http://localhost:5173</code>) no CORS.</p>
     </section>
 
@@ -116,7 +131,7 @@ npm run dev</code></pre>
       <p>O app Android nativo não usa CORS como o React no navegador. Se o Android bloquear a chamada HTTP local, habilite tráfego HTTP somente na configuração de desenvolvimento/debug do app; não relaxe essa configuração na versão de produção. Consulte a documentação Android sobre <a href="https://developer.android.com/privacy-and-security/security-config" target="_blank" rel="noopener">Network Security Configuration</a>.</p>
       <div class="tutorial-callout">
         <strong>Sem abrir o emulador</strong>
-        <p>Manoela pode iniciar a API e confirmar uma chamada pelo cmd.exe, como na seção 3. Isso verifica a API e o banco, mas não testa a conexão feita pelo app Android. Para validar o app de ponta a ponta, será necessário executá-lo em um emulador ou dispositivo Android.</p>
+        <p>Manoela pode iniciar a API em segundo plano e fechar o CMD, como na seção 2. Docker Desktop e computador precisam continuar ligados. Ela pode confirmar uma chamada pelo cmd.exe, como na seção 3; isso verifica a API e o banco, mas não testa a conexão feita pelo app Android. Para validar o app de ponta a ponta, será necessário executá-lo em um emulador ou dispositivo Android.</p>
       </div>
     </section>
 
