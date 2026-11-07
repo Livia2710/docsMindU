@@ -11,6 +11,7 @@ Cada rota mostra o método, o caminho, quem pode chamar (público, cliente, empr
 | **Documentação publicada (GitHub Pages)** | [Link da Documentação](https://docsmindu.vercel.app/) |
 | **Repositório da API (backend)** | [Link do Repositório](https://github.com/Livia2710/javaMindU.git) |
 | **API em produção (Web)** | https://mindu-api.onrender.com |
+| **Tutorial para rodar a API localmente** | [Tutorial](tutorial.html) |
 
 
 ## Para que serve
@@ -18,6 +19,7 @@ Cada rota mostra o método, o caminho, quem pode chamar (público, cliente, empr
 - Consultar quais rotas existem e como chamá-las.
 - Copiar o código de integração para React e Android.
 - Alternar entre o ambiente **Local** e **Web** e ver todos os exemplos atualizarem de uma vez.
+- Seguir o tutorial de Docker para iniciar a API e o banco localmente e configurar os clientes React e Android.
 - Usar em modo claro ou escuro, seguindo o sistema ou escolhendo no botão do topo.
 - Pedir novas rotas ou apontar problemas em rotas existentes, direto pelas Issues deste repositório.
 
@@ -25,7 +27,7 @@ Cada rota mostra o método, o caminho, quem pode chamar (público, cliente, empr
 
 | Ambiente | Endereço | Observação |
 |---|---|---|
-| Local | `http://localhost:8080` | Precisa do backend rodando (`docker compose up`). No emulador Android, use `http://10.0.2.2:8080`. |
+| Local | `http://localhost:8080` | Precisa do backend rodando (`docker compose -f docker-compose.local.yml up`). No emulador Android, use `http://10.0.2.2:8080`. |
 | Web | `https://mindu-api.onrender.com` | Sempre disponível, mas a primeira chamada do dia pode levar até 1 minuto, porque o serviço "dorme" quando fica sem uso. |
 
 Toda rota, exceto as marcadas como **Público**, exige o cabeçalho `Authorization: Bearer <token>`, obtido no login.
@@ -43,6 +45,7 @@ As Issues servem também como lista do que ainda precisa ser implementado na API
 .
 ├── index.html                      # catálogo de rotas
 ├── rota.html                       # modelo da página de detalhe de cada rota
+├── tutorial.html                   # como iniciar a API local e conectar React/Android
 ├── style.css                       # estilos e paleta (claro/escuro)
 ├── script.js                       # dados das rotas e montagem da página
 ├── mindu-modelagem.html            # artefato de modelagem (link de download no topo)

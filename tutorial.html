@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial — API local · MindU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+<style>
+.cmd-notice { margin: 0 0 18px; padding: 14px 16px; border: 1px solid var(--focus); border-radius: 9px; background: color-mix(in srgb, var(--focus) 9%, var(--panel)); }
+.code-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 -8px; padding: 7px 10px; border: 1px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0; background: var(--bg); color: var(--muted); font-size: .76rem; }
+.code-toolbar + pre { margin-top: 8px; border-radius: 0 0 8px 8px; }
+.copy-code { border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; }
+.copy-code:hover { border-color: var(--focus); color: var(--link); }
+.profile-filter { margin: 20px 0 8px; }
+.profile-filter-label { margin: 0 0 6px; font-size: .86rem; font-weight: 600; }
+[data-profile-panel][hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>MindU · API</h1>
+    <div class="spacer"></div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
+    <div class="dl">
+      <a href="index.html">← Documentação das rotas</a>
+      <a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a>
+    </div>
+  </div>
+
+  <main class="tutorial-shell">
+    <p class="tutorial-eyebrow">Guia de desenvolvimento</p>
+    <h2 class="tutorial-title">Rodar a API localmente</h2>
+    <p class="tutorial-lead">O Docker inicia o backend Spring Boot e o PostgreSQL no computador de cada pessoa. Sabrina e Manoela podem usar a mesma API; muda apenas o endereço que o React ou o Android usa para chamá-la.</p>
+
+    <div class="profile-filter">
+      <p class="profile-filter-label">Mostrar instruções de:</p>
+      <div class="tabs" role="group" aria-label="Filtrar instruções por pessoa">
+        <button type="button" data-profile-button="sabrina" aria-pressed="true" class="active">Sabrina · React</button>
+        <button type="button" data-profile-button="manoela" aria-pressed="false">Manoela · Android</button>
+      </div>
+      <p id="profile-caption" class="setup-note">Exibindo as instruções específicas da Sabrina. As etapas comuns ficam visíveis para ambas.</p>
+    </div>
+
+    <div class="cmd-notice"><strong>Os comandos de terminal desta página são para o Prompt de Comando do Windows (cmd.exe).</strong> Abra o menu Iniciar, digite <code>cmd</code> e escolha Prompt de Comando. Não cole esses comandos no PowerShell. Use o botão <strong>Copiar</strong> para copiar cada bloco.</div>
+
+    <div class="tutorial-callout">
+      <strong>O que fica local?</strong>
+      <p>A API responde em <code>http://localhost:8080</code> no computador que roda o Docker. O banco local é separado do banco do Render: os dados de produção não são copiados.</p>
+    </div>
+
+    <section class="tutorial-section">
+      <h3>1. Preparação (uma vez por computador)</h3>
+      <ol>
+        <li>Instale o <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">Docker Desktop para Windows</a>. Se o instalador pedir, habilite o WSL 2 e reinicie o computador. Consulte os <a href="https://docs.docker.com/desktop/setup/install/windows-install/" target="_blank" rel="noopener">requisitos e passos oficiais para Windows</a>.</li>
+        <li>Instale o Git for Windows para clonar os repositórios.</li>
+        <li>Inicie o Docker Desktop e espere ele indicar que está em execução.</li>
+      </ol>
+      <p>Não é necessário instalar Java, Maven ou PostgreSQL separadamente para rodar o backend pelo Docker.</p>
+      <p data-profile-panel="sabrina">Para iniciar o React, Sabrina também precisa do Node.js.</p>
+      <p data-profile-panel="manoela" hidden>Para o app, Manoela usa o JDK e as ferramentas instaladas pelo Android Studio.</p>
+    </section>
+
+    <section class="tutorial-section">
+      <h3>2. Clonar e iniciar a API e o banco</h3>
+      <p>No cmd.exe, clone o repositório do backend. A conta precisa ter acesso ao repositório:</p>
+      <pre data-label="CMD · Clonar backend"><code>
+git clone https://github.com/Livia2710/javaMindU.git
+cd javaMindU</code></pre>
+      <p>Na pasta <code>javaMindU</code>, construa a imagem da API e inicie os dois serviços:</p>
+      <pre data-label="CMD · iniciar API e banco"><code>docker compose -f docker-compose.local.yml up --build</code></pre>
+      <p>Na primeira execução, o Docker baixa as imagens e compila o backend, então pode demorar. Deixe o terminal aberto para acompanhar os logs. Quando a API iniciar, estará em <code>http://localhost:8080</code>.</p>
+      <p>Para deixar os containers em segundo plano, use <code>-d</code> e acompanhe os logs da API com o segundo comando:</p>
+      <pre data-label="CMD · segundo plano e logs"><code>docker compose -f docker-compose.local.yml up --build -d
+docker compose -f docker-compose.local.yml logs -f api</code></pre>
+      <p>Para parar a API e o banco sem apagar os dados locais, pressione <code>Ctrl+C</code> no terminal em primeiro plano ou execute:</p>
+      <pre data-label="CMD · parar serviços"><code>docker compose -f docker-compose.local.yml down</code></pre>
+    </section>
+
+    <section class="tutorial-section">
+      <h3>3. Confirmar que a API está respondendo</h3>
+      <p>Com os containers ativos, abra outra janela do cmd.exe e faça uma chamada para um endpoint público:</p>
+      <pre data-label="CMD · verificar API"><code>curl.exe http://localhost:8080/v1/planos</code></pre>
+      <p>A resposta aparecerá no cmd.exe, e a requisição também aparecerá nos logs da API. Se os planos ainda não tiverem sido cadastrados no banco local, uma lista vazia pode ser normal; isso não significa, por si só, que a conexão falhou.</p>
+      <div class="tutorial-callout tutorial-callout-warn">
+        <strong>Banco local</strong>
+        <p>O banco local começa separado e não contém os dados do Render. Use dados fictícios para os testes. O volume Docker mantém os dados locais entre inicializações.</p>
+      </div>
+    </section>
+
+    <section class="tutorial-section" data-profile-panel="sabrina">
+      <h3>4. Sabrina — conectar o React local à API</h3>
+      <ol start="1">
+        <li>Instale as dependências e configure o endereço da API.</li>
+      </ol>
+      <p>No arquivo <code>src/api.js</code>, Sabrina deve ler a URL de uma variável do Vite, mantendo Render como padrão para os outros ambientes:</p>
+      <pre data-label="JavaScript · src/api.js"><code>const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://mindu-api.onrender.com";</code></pre>
+      <p>Crie <code>.env.local</code> na pasta <code>FrondEnd/mindU</code>:</p>
+      <pre data-label="Arquivo .env.local"><code>VITE_API_BASE_URL=http://localhost:8080</code></pre>
+      <pre data-label="CMD · dependências e React"><code>npm install
+npm run dev</code></pre>
+      <p>Abra <code>http://localhost:5173</code>. Se o arquivo <code>.env.local</code> mudar enquanto o Vite estiver ativo, pare e inicie o Vite novamente. Não envie o arquivo <code>.env.local</code> ao GitHub.</p>
+      <p>A API já permite a origem local do Vite (<code>http://localhost:5173</code>) no CORS.</p>
+    </section>
+
+    <section class="tutorial-section" data-profile-panel="manoela" hidden>
+      <h3>5. Manoela — conectar o Android Studio à API</h3>
+      <p>Manoela inicia o backend com os mesmos comandos Docker da seção 2, no computador onde ela também executa o Android Studio. No app Android, localize a configuração do cliente HTTP — por exemplo, <code>BASE_URL</code>, <code>Retrofit.Builder</code> ou <code>BuildConfig</code> — e use:</p>
+      <pre data-label="URL base · emulador Android"><code>http://10.0.2.2:8080/</code></pre>
+      <p>No emulador Android, <code>10.0.2.2</code> é o endereço especial que alcança o loopback do computador anfitrião. <code>localhost</code> dentro do app apontaria para o próprio emulador. Veja a <a href="https://developer.android.com/studio/run/emulator-networking-address" target="_blank" rel="noopener">documentação de rede do emulador</a>.</p>
+      <p>O app Android nativo não usa CORS como o React no navegador. Se o Android bloquear a chamada HTTP local, habilite tráfego HTTP somente na configuração de desenvolvimento/debug do app; não relaxe essa configuração na versão de produção. Consulte a documentação Android sobre <a href="https://developer.android.com/privacy-and-security/security-config" target="_blank" rel="noopener">Network Security Configuration</a>.</p>
+      <div class="tutorial-callout">
+        <strong>Sem abrir o emulador</strong>
+        <p>Manoela pode iniciar a API e confirmar uma chamada pelo cmd.exe, como na seção 3. Isso verifica a API e o banco, mas não testa a conexão feita pelo app Android. Para validar o app de ponta a ponta, será necessário executá-lo em um emulador ou dispositivo Android.</p>
+      </div>
+    </section>
+
+    <section class="tutorial-section">
+      <h3>Problemas comuns</h3>
+      <ul>
+        <li><strong>Docker não inicia:</strong> abra o Docker Desktop, aguarde ficar pronto e confira se o WSL 2 foi habilitado quando solicitado.</li>
+        <li><strong>Porta 8080 ocupada:</strong> feche o outro serviço que a utiliza antes de iniciar o Compose.</li>
+        <li data-profile-panel="sabrina"><strong>React continua chamando Render:</strong> confira o valor em <code>.env.local</code> e reinicie <code>npm run dev</code>.</li>
+        <li data-profile-panel="manoela" hidden><strong>Android não conecta usando localhost:</strong> no emulador, use <code>10.0.2.2</code> para alcançar a máquina anfitriã.</li>
+        <li data-profile-panel="manoela" hidden><strong>Android informa que HTTP sem criptografia não é permitido:</strong> libere HTTP somente para debug/desenvolvimento.</li>
+        <li><strong>Precisa conferir os logs:</strong> no cmd.exe, execute <code>docker compose -f docker-compose.local.yml logs -f api</code>.</li>
+      </ul>
+    </section>
+
+    <p class="tutorial-footnote">O arquivo <code>docker-compose.local.yml</code> e a atualização do Dockerfile precisam estar commitados e disponíveis no repositório do backend antes de Sabrina ou Manoela clonarem uma cópia nova.</p>
+  </main>
+
+  <footer>MindU — tutorial para executar a API localmente em ambiente de desenvolvimento.</footer>
+  <script>
+    const profileNames = { sabrina: "Sabrina · React", manoela: "Manoela · Android" };
+    function showProfile(profile) {
+      document.querySelectorAll("[data-profile-button]").forEach(button => {
+        const selected = button.dataset.profileButton === profile;
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+      document.querySelectorAll("[data-profile-panel]").forEach(panel => {
+        panel.hidden = panel.dataset.profilePanel !== profile;
+      });
+      document.getElementById("profile-caption").textContent =
+        `Exibindo as instruções específicas de ${profileNames[profile]}. As etapas comuns ficam visíveis para ambas.`;
+    }
+    document.querySelectorAll("[data-profile-button]").forEach(button => {
+      button.addEventListener("click", () => showProfile(button.dataset.profileButton));
+    });
+    showProfile("sabrina");
+
+    document.querySelectorAll(".tutorial-section pre").forEach(pre => {
+      const bar = document.createElement("div");
+      bar.className = "code-toolbar";
+      const label = document.createElement("span");
+      label.textContent = pre.dataset.label || "Código";
+      const button = document.createElement("button");
+      button.className = "copy-code";
+      button.type = "button";
+      button.textContent = "Copiar";
+      button.addEventListener("click", async () => {
+        const text = pre.innerText;
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const field = document.createElement("textarea");
+          field.value = text;
+          field.style.position = "fixed";
+          field.style.opacity = "0";
+          document.body.appendChild(field);
+          field.select();
+          document.execCommand("copy");
+          field.remove();
+        }
+        button.textContent = "Copiado";
+        window.setTimeout(() => { button.textContent = "Copiar"; }, 1400);
+      });
+      bar.append(label, button);
+      pre.before(bar);
+    });
+  </script>
+</body>
+</html>

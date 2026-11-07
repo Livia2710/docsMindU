@@ -142,6 +142,24 @@ nav.side a { position: relative; }
 .route-guide p { margin: 0; }
 .route-guide ol, .route-guide ul { margin: 6px 0 0; padding-left: 22px; }
 .route-guide li { margin: 4px 0; }
+.tutorial-shell { max-width: 960px; margin: 0 auto; padding: 32px 24px 72px; }
+.tutorial-eyebrow { margin: 0; color: var(--muted); font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+.tutorial-title { margin: 4px 0 8px; color: var(--primary); font-size: clamp(1.6rem, 3vw, 2.2rem); }
+.tutorial-lead { max-width: 780px; margin: 0 0 20px; color: var(--muted); font-size: 1.02rem; }
+.tutorial-section { margin: 18px 0; padding: 20px 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.tutorial-section h3 { margin: 0 0 10px; font-size: 1.18rem; }
+.tutorial-section p { margin: 9px 0; }
+.tutorial-section ol, .tutorial-section ul { margin: 8px 0; padding-left: 24px; }
+.tutorial-section li { margin: 5px 0; }
+.tutorial-section pre { margin: 10px 0 14px; }
+.tutorial-callout { margin: 18px 0; padding: 14px 16px; background: color-mix(in srgb, var(--link) 8%, var(--panel)); border-left: 4px solid var(--link); border-radius: 8px; }
+.tutorial-callout p { margin: 4px 0 0; }
+.tutorial-callout-warn { border-left-color: var(--put); }
+.tutorial-footnote { margin: 18px 4px 0; color: var(--muted); font-size: .86rem; }
+@media (max-width: 680px) {
+  .tutorial-shell { padding: 22px 14px 52px; }
+  .tutorial-section { padding: 15px; }
+}
 @media (max-width: 680px) {
   .route-detail-shell { padding: 20px 14px 48px; }
   .route-detail-shell .route { border-radius: 8px; }
