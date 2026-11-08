@@ -169,6 +169,18 @@ Call<List<MatriculaResponse>> gerarMatriculas(@Path("id") String empresaId, @Que
       react: `const matriculas = await api("/v1/empresas/me/matriculas?quantidade=5", { method: "POST" });`,
       android: `@POST("v1/empresas/me/matriculas")
 Call<List<MatriculaResponse>> gerarMinhasMatriculas(@Query("quantidade") int quantidade);` },
+    { m: "get", path: "/v1/empresas/me/matriculas", auth: "Empresa", desc: "Listar todas as matrículas da empresa autenticada, inclusive após atualizar a página",
+      reqBody: null,
+      resBody: [{ id: "<uuid>", codigo: "A1B2C3", utilizada: false }],
+      react: `const matriculas = await api("/v1/empresas/me/matriculas");`,
+      android: `@GET("v1/empresas/me/matriculas")
+Call<List<MatriculaResponse>> minhasMatriculas();` },
+    { m: "get", path: "/v1/empresas/{id}/matriculas", auth: "Empresa/Admin", desc: "Listar matrículas da empresa; a API valida a titularidade",
+      reqBody: null,
+      resBody: [{ id: "<uuid>", codigo: "A1B2C3", utilizada: false }],
+      react: `const matriculas = await api("/v1/empresas/" + empresaId + "/matriculas");`,
+      android: `@GET("v1/empresas/{id}/matriculas")
+Call<List<MatriculaResponse>> listarMatriculas(@Path("id") String empresaId);` },
     { m: "get", path: "/v1/empresas/me/dashboard", auth: "Empresa", desc: "Dashboard da empresa autenticada; identidade vem do token",
       reqBody: null,
       resBody: { matriculasDisponiveis: 25, matriculasUsadas: 5 },
@@ -200,6 +212,12 @@ Call<ClienteResponse> cadastrarCliente(@Body ClienteRequest body);` },
       react: `const perfil = await api("/v1/clientes/me");`,
       android: `@GET("v1/clientes/me")
 Call<ClienteResponse> meuPerfil();` },
+    { m: "get", path: "/v1/clientes/me/dados-sensiveis", auth: "Cliente", desc: "Ler CNS, nascimento, nome da mãe e gênero do próprio perfil",
+      reqBody: null,
+      resBody: { cns: "898001234567890", dataNascimento: "1995-03-20", nomeMae: "Ana Silva", genero: "FEMININO" },
+      react: `const dados = await api("/v1/clientes/me/dados-sensiveis");`,
+      android: `@GET("v1/clientes/me/dados-sensiveis")
+Call<DadosSensiveisResponse> meusDadosSensiveis();` },
     { m: "get", path: "/v1/clientes/{id}", auth: "Cliente/Admin", desc: "Consultar perfil por ID; cliente acessa apenas o próprio cadastro",
       reqBody: null, resBody: { id: "<uuid>", nome: "Maria Silva", email: "maria@email.com", telefone: "11999990000", status: "APROVADO" },
       react: `const perfil = await api("/v1/clientes/" + id);`,
