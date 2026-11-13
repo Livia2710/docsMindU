@@ -27,6 +27,7 @@
     <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
     <div class="dl">
       <a href="index.html">← Documentação das rotas</a>
+      <a href="integracao-mila.html">Guia: integrar a Mila</a>
       <a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a>
     </div>
   </div>
@@ -34,7 +35,7 @@
   <main class="tutorial-shell">
     <p class="tutorial-eyebrow">Guia de desenvolvimento</p>
     <h2 class="tutorial-title">Rodar a API localmente</h2>
-    <p class="tutorial-lead">O Docker inicia o backend Spring Boot e o PostgreSQL no computador de cada pessoa. Sabrina e Manoela podem usar a mesma API; muda apenas o endereço que o React ou o Android usa para chamá-la.</p>
+    <p class="tutorial-lead">O Docker inicia o backend Spring Boot, o PostgreSQL e o serviço interno da Mila no computador de cada pessoa. Sabrina e Manoela acessam o chat pela API Java; cada uma conecta seu próprio front-end a ela.</p>
 
     <div class="profile-filter">
       <p class="profile-filter-label">Mostrar instruções de:</p>
@@ -66,25 +67,71 @@
 
     <section class="tutorial-section">
       <h3>2. Clonar e iniciar a API e o banco</h3>
-      <p>No cmd.exe, clone o repositório do backend. A conta precisa ter acesso ao repositório:</p>
-      <pre data-label="CMD · Clonar backend"><code>
+      <p>Vamos configurar o computador para que o Docker consiga construir os três serviços necessários: PostgreSQL, API Java e API interna da Mila. A interface do site e o app Android chamam somente o Java.</p>
+
+      <h4>2.1 Abrir o Prompt de Comando</h4>
+      <ol>
+        <li>Pressione a tecla Windows, digite <strong>cmd</strong> e abra <strong>Prompt de Comando</strong>. Esta página usa comandos para o CMD, não para o PowerShell.</li>
+        <li>Os comandos devem ser colados na janela preta do CMD e executados com Enter. Copie um bloco inteiro por vez.</li>
+        <li>Confirme que o Docker Desktop está aberto e indica que está em execução.</li>
+      </ol>
+
+      <h4>2.2 Clonar os dois projetos</h4>
+      <p>“Clonar” significa baixar uma cópia do repositório para o computador. Os dois projetos precisam ficar dentro da mesma pasta <code>GitHub</code>. Se essa pasta não existir, crie-a primeiro pelo Explorador de Arquivos em <code>Documentos</code>. No CMD, execute estas linhas, uma por vez:</p>
+      <pre data-label="CMD · baixar os repositórios"><code>cd /d "%USERPROFILE%\Documents\GitHub"
 git clone https://github.com/Livia2710/javaMindU.git
+git clone https://github.com/Livia2710/mila.git Mila
 cd javaMindU</code></pre>
-      <p>Antes de iniciar, configure a senha local dos quatro admins. No cmd.exe, abra o Bloco de Notas:</p>
-      <pre data-label="CMD · criar configuração local"><code>notepad .env</code></pre>
-      <p>Digite a linha abaixo usando a senha que você já recebeu. Salve o arquivo exatamente como <code>.env</code> (sem <code>.txt</code>) na raiz de <code>javaMindU</code>. O arquivo é ignorado pelo Git e não deve ser enviado ao repositório.</p>
-      <pre data-label="Conteúdo do arquivo .env"><code>MINDU_ADMIN_SENHA=COLOQUE_A_SENHA_LOCAL_AQUI</code></pre>
-      <p>Essa senha será usada para os emails <code>livia@mindu.local</code>, <code>sabrina@mindu.local</code>, <code>manuela@mindu.local</code> e <code>tinin@mindu.local</code> no banco local.</p>
-      <p>Na pasta <code>javaMindU</code>, construa a imagem da API e inicie os dois serviços:</p>
-      <pre data-label="CMD · iniciar API e banco"><code>docker compose -f docker-compose.local.yml up --build</code></pre>
-      <p>Na primeira execução, o Docker baixa as imagens e compila o backend, então pode demorar. Sem a opção <code>-d</code>, os logs ficam nesta janela e ela precisa continuar aberta. Quando a API iniciar, estará em <code>http://localhost:8080</code>.</p>
-      <p>Para deixar API e banco em segundo plano e liberar o CMD, inicie com <code>-d</code>. Depois que o comando terminar, você pode fechar essa janela:</p>
-      <pre data-label="CMD · iniciar em segundo plano"><code>docker compose -f docker-compose.local.yml up --build -d</code></pre>
-      <p>O Docker Desktop e o computador precisam continuar ligados. Para acompanhar os logs sem parar os containers, abra outro CMD e execute:</p>
-      <pre data-label="CMD · acompanhar logs"><code>docker compose -f docker-compose.local.yml logs -f api</code></pre>
-      <p>Pressionar <code>Ctrl+C</code> nessa janela encerra apenas a visualização dos logs; API e banco continuam rodando.</p>
-      <p>Para parar a API e o banco sem apagar os dados locais, pressione <code>Ctrl+C</code> no terminal em primeiro plano ou execute:</p>
-      <pre data-label="CMD · parar serviços"><code>docker compose -f docker-compose.local.yml down</code></pre>
+      <p>Se o GitHub pedir autenticação ou disser que você não tem acesso, entre na conta autorizada; se o repositório estiver privado, a responsável precisa primeiro convidar seu usuário. Ao terminar, existem duas pastas irmãs: <code>javaMindU</code> e <code>Mila</code>. O Compose precisa dessa posição para encontrar os arquivos.</p>
+
+      <h4>2.3 Entender o que é <code>.env</code></h4>
+      <p>Um arquivo <code>.env</code> é um bloco de notas simples que guarda configurações usadas pelos programas quando iniciam. Cada linha tem o formato <code>NOME_DA_CONFIGURACAO=valor</code>. Não coloque espaços ao redor do sinal <code>=</code> e não publique esses arquivos no GitHub. As senhas e chaves ficam nos computadores/servidores, não no código-fonte.</p>
+      <table>
+        <thead><tr><th>Nome</th><th>Para que serve</th><th>Onde fica</th></tr></thead>
+        <tbody>
+          <tr><td><code>GROQ_API_KEY</code></td><td>Credencial do provedor que a Mila usa para gerar respostas e transcrever áudio. É fornecida por quem administra o acesso Groq; não é criada pelo Java.</td><td>Só em <code>Mila\.env</code>.</td></tr>
+          <tr><td><code>MILA_API_KEY</code></td><td>Senha interna compartilhada entre Java e Mila para o Java autenticar chamadas ao serviço Mila. Não é a chave Groq. Cada pessoa pode gerar uma chave local e colocar o mesmo valor nos dois arquivos.</td><td>Nos dois arquivos: <code>javaMindU\.env</code> e <code>Mila\.env</code>.</td></tr>
+          <tr><td><code>MINDU_ADMIN_SENHA</code></td><td>Senha local dos usuários administradores de teste do banco MindU. Use a senha local fornecida pela responsável pelo backend.</td><td>Só em <code>javaMindU\.env</code>.</td></tr>
+        </tbody>
+      </table>
+
+      <h4>2.4 Criar o arquivo de configuração da Mila</h4>
+      <p>Primeiro entre na pasta da Mila e copie o modelo de configuração que já vem no projeto:</p>
+      <pre data-label="CMD · criar o .env da Mila"><code>cd ..\Mila
+copy .env.example .env
+notepad .env</code></pre>
+      <p>Como este é um clone novo, normalmente ainda não haverá um <code>.env</code>. Se o CMD perguntar se deseja sobrescrever um <code>.env</code> existente, responda <strong>N</strong> e abra o arquivo existente no Bloco de Notas para editá-lo. No arquivo aberto, procure <code>GROQ_API_KEY=</code> e substitua o texto de exemplo pela chave Groq fornecida pela responsável. Essa credencial permite que a Mila use o provedor para gerar respostas e transcrever áudio. Não a envie às colegas por um canal público. Salve com <strong>Ctrl+S</strong> e feche o Bloco de Notas.</p>
+      <p>Para criar a chave interna local, cole este comando na mesma janela do CMD e copie o texto hexadecimal que aparecer. Embora o comando use uma ferramenta do Windows chamada PowerShell por dentro, você não precisa abrir outra janela:</p>
+      <pre data-label="CMD · gerar chave interna local"><code>powershell -NoProfile -Command "[guid]::NewGuid().ToString('N')"</code></pre>
+      <p>Essa chave aleatória é apenas uma senha interna para a comunicação local Java–Mila; ela não é uma chave de provedor e não tem relação com a conta Groq. Depois de copiá-la do CMD, reabra o arquivo da Mila:</p>
+      <pre data-label="CMD · colocar a chave interna na Mila"><code>notepad .env</code></pre>
+      <p>Substitua o valor depois de <code>MILA_API_KEY=</code> pelo texto recém-gerado. Salve com <strong>Ctrl+S</strong> e feche o Bloco de Notas. Mantenha o valor copiado para colá-lo também no arquivo Java no próximo passo.</p>
+
+      <h4>2.5 Criar o arquivo de configuração do Java</h4>
+      <p>Agora volte à pasta do backend e abra o arquivo local:</p>
+      <pre data-label="CMD · abrir o .env do Java"><code>cd ..\javaMindU
+notepad .env</code></pre>
+      <p>Se o Bloco de Notas perguntar se deseja criar o arquivo, escolha <strong>Sim</strong>. Se ele já existir, não apague as configurações que já estão lá: acrescente ou atualize as linhas abaixo. Em <code>MINDU_ADMIN_SENHA</code>, preserve a senha local que você recebeu. Em <code>MILA_API_KEY</code>, cole exatamente a mesma chave interna que colocou no arquivo da Mila. Se o valor mudar em um dos arquivos, atualize também o outro para que os dois coincidam.</p>
+      <pre data-label="javaMindU/.env · configurações locais"><code>MINDU_ADMIN_SENHA=SENHA_LOCAL_FORNECIDA_PELA_RESPONSAVEL
+MILA_BUILD_CONTEXT=../Mila
+MILA_ENV_FILE=../Mila/.env
+MILA_API_KEY=COLE_A_CHAVE_INTERNA_GERADA</code></pre>
+      <p>As duas linhas <code>MILA_BUILD_CONTEXT</code> e <code>MILA_ENV_FILE</code> dizem ao Docker onde encontrar, respectivamente, o código da Mila e o arquivo de configurações dela. Salve com <strong>Ctrl+S</strong> e feche o Bloco de Notas.</p>
+      <div class="tutorial-callout tutorial-callout-warn">
+        <strong>Confira o nome do arquivo antes de continuar</strong>
+      <p>Os nomes devem ser exatamente <code>.env</code>, sem <code>.txt</code>. Se o Bloco de Notas abrir a janela “Salvar como”, escolha <strong>Todos os arquivos</strong> no tipo e digite <code>".env"</code> no nome do arquivo. Não compartilhe uma captura de tela que mostre valores de chaves. Os arquivos <code>.env</code> são ignorados pelo Git; os modelos <code>.env.example</code> podem ser publicados porque não contêm credenciais reais.</p>
+      </div>
+
+      <h4>2.6 Construir e iniciar Java, banco e Mila</h4>
+      <p>Volte a confirmar que o CMD está dentro da pasta <code>javaMindU</code>. Agora execute:</p>
+      <pre data-label="CMD · iniciar os serviços locais"><code>docker compose -f docker-compose.local.yml up --build -d api db mila</code></pre>
+      <p>Na primeira vez pode demorar: o Docker baixa dependências, prepara os documentos da base de conhecimento e constrói os serviços. O parâmetro <code>-d</code> deixa os serviços em segundo plano. Quando terminar, o Java estará em <code>http://localhost:8080</code>; a Mila é interna e o front não chama sua porta diretamente. Se aparecer erro dizendo que <code>GROQ_API_KEY</code> está vazia/ausente, volte ao arquivo <code>Mila\.env</code>, preencha essa chave e rode o comando novamente.</p>
+      <p>Para conferir se os três serviços iniciaram, execute:</p>
+      <pre data-label="CMD · conferir os containers"><code>docker compose -f docker-compose.local.yml ps</code></pre>
+      <p>Para ver os logs enquanto investigam um erro, execute:</p>
+      <pre data-label="CMD · ver logs dos serviços"><code>docker compose -f docker-compose.local.yml logs -f api mila</code></pre>
+      <p>Pressione <code>Ctrl+C</code> para parar somente a exibição dos logs. Os containers continuam ligados. Para desligá-los sem apagar os dados locais do banco:</p>
+      <pre data-label="CMD · parar os serviços"><code>docker compose -f docker-compose.local.yml down</code></pre>
     </section>
 
     <section class="tutorial-section">
@@ -106,8 +153,38 @@ SELECT u.nome, u.email FROM usuario u JOIN admin a ON a.id = u.id ORDER BY u.nom
       </div>
     </section>
 
+    <section class="tutorial-section">
+      <h3>4. Como o chat chega à Mila</h3>
+      <p>O app/site manda a mensagem para o Java com o JWT do usuário. O Java valida esse token e encaminha a mensagem à Mila usando uma chave interna guardada no ambiente dos servidores. A resposta volta pelo Java para o front. O React e o Android nunca recebem nem enviam a chave interna ou a chave Groq.</p>
+      <ol>
+        <li>Faça login pela API e guarde o JWT como já é feito nas outras telas.</li>
+        <li>Envie cada mensagem para <code>POST /v1/chat</code>, com <code>Authorization: Bearer &lt;JWT&gt;</code>.</li>
+        <li>Envie <code>message</code> e <code>history</code> em JSON. A mensagem pode ter até 4.000 caracteres; o histórico pode ter até 20 turnos com papel <code>user</code> ou <code>assistant</code>.</li>
+        <li>Mostre o campo <code>response</code> da resposta no balão da Mila. Acrescente a pergunta e a resposta ao histórico local e envie-o na próxima chamada. A Mila não mantém histórico entre chamadas nem grava a conversa; se o app não reenviar o histórico, ela não lembrará mensagens anteriores.</li>
+      </ol>
+      <pre data-label="JSON · mensagem de texto"><code>{
+  "message": "O que é o MindU e o que a Mila pode me ajudar a fazer?",
+  "history": []
+}</code></pre>
+      <pre data-label="JSON · formato da resposta"><code>{
+  "response": "...texto da resposta da Mila...",
+  "intent": "sobre_mindu",
+  "sources": [],
+  "missing_info": false,
+  "debug_info": {},
+  "transcription": null
+}</code></pre>
+      <p>O campo <code>debug_info</code> é técnico e não deve ser exibido como mensagem ao usuário. A resposta pode conter emojis ou Markdown. Renderizem texto/Markdown com uma biblioteca segura; não insiram a resposta como HTML bruto (<code>innerHTML</code>), pois conteúdo vindo de um modelo não deve ser tratado como código confiável.</p>
+      <div class="tutorial-callout tutorial-callout-warn">
+        <strong>Áudio e arquivos</strong>
+        <p>Áudio é enviado como <code>multipart/form-data</code> para <code>POST /v1/chat/audio</code>; o retorno inclui a transcrição. A Mila aceita formatos de áudio configurados no serviço, com limite local padrão de 10 MB. Imagens e PDFs não são suportados nesta rota; a Mila informa isso na resposta. Não envie áudio como JSON/base64. No navegador, não defina manualmente o cabeçalho multipart: deixe o FormData criar o boundary.</p>
+      </div>
+      <p>Antes de conectar a interface, testem a rota no Postman ou no terminal com um JWT real. A resposta <code>401</code> indica token ausente/inválido; <code>502</code> normalmente indica que o Java não alcançou a Mila ou que ela falhou. Para ver os logs dos dois serviços, use:</p>
+      <pre data-label="CMD · logs Java e Mila"><code>docker compose -f docker-compose.local.yml logs -f api mila</code></pre>
+    </section>
+
     <section class="tutorial-section" data-profile-panel="sabrina">
-      <h3>4. Sabrina — conectar o React local à API</h3>
+      <h3>5. Sabrina — conectar o React local à API</h3>
       <ol start="1">
         <li>Instale as dependências e configure o endereço da API.</li>
       </ol>
@@ -121,10 +198,17 @@ SELECT u.nome, u.email FROM usuario u JOIN admin a ON a.id = u.id ORDER BY u.nom
 npm run dev</code></pre>
       <p>Abra <code>http://localhost:5173</code>. O CMD que executa <code>npm run dev</code> precisa continuar aberto enquanto Sabrina usar o site. Se o arquivo <code>.env.local</code> mudar enquanto o Vite estiver ativo, pare e inicie o Vite novamente. Não envie o arquivo <code>.env.local</code> ao GitHub.</p>
       <p>A API já permite a origem local do Vite (<code>http://localhost:5173</code>) no CORS.</p>
+      <p>Exemplo de envio de texto no componente do chat (considerando que <code>api</code> já anexa o JWT):</p>
+      <pre data-label="React · enviar texto para a Mila"><code>const resultado = await api("/v1/chat", {
+  method: "POST",
+  body: { message: texto, history }
+});
+adicionarMensagemMila(resultado.response);</code></pre>
+      <p>Para voz, grave ou selecione um arquivo de áudio e envie um <code>FormData</code> para <code>/v1/chat/audio</code>, com as partes <code>file</code>, <code>message</code> (opcional) e <code>history</code> (string JSON). O JWT segue no cabeçalho <code>Authorization</code>. Não configure <code>Content-Type</code> manualmente.</p>
     </section>
 
     <section class="tutorial-section" data-profile-panel="manoela" hidden>
-      <h3>5. Manoela — conectar o Android Studio à API</h3>
+      <h3>6. Manoela — conectar o Android Studio à API</h3>
       <p>Manoela inicia o backend com os mesmos comandos Docker da seção 2, no computador onde ela também executa o Android Studio. No app Android, localize a configuração do cliente HTTP — por exemplo, <code>BASE_URL</code>, <code>Retrofit.Builder</code> ou <code>BuildConfig</code> — e use:</p>
       <pre data-label="URL base · emulador Android"><code>http://10.0.2.2:8080/</code></pre>
       <p>No emulador Android, <code>10.0.2.2</code> é o endereço especial que alcança o loopback do computador anfitrião. <code>localhost</code> dentro do app apontaria para o próprio emulador. Veja a <a href="https://developer.android.com/studio/run/emulator-networking-address" target="_blank" rel="noopener">documentação de rede do emulador</a>.</p>
@@ -133,6 +217,7 @@ npm run dev</code></pre>
         <strong>Sem abrir o emulador</strong>
         <p>Manoela pode iniciar a API em segundo plano e fechar o CMD, como na seção 2. Docker Desktop e computador precisam continuar ligados. Ela pode confirmar uma chamada pelo cmd.exe, como na seção 3; isso verifica a API e o banco, mas não testa a conexão feita pelo app Android. Para validar o app de ponta a ponta, será necessário executá-lo em um emulador ou dispositivo Android.</p>
       </div>
+      <p>Crie uma chamada Retrofit autenticada para <code>POST v1/chat</code>, com um DTO contendo <code>message</code> e a lista <code>history</code>. O interceptor que já adiciona o JWT nas outras chamadas também deve protegê-la. Para áudio, use <code>@Multipart</code> e envie as partes <code>file</code>, <code>message</code> (opcional) e <code>history</code> como string JSON; não coloque a chave da Mila no app.</p>
     </section>
 
     <section class="tutorial-section">
@@ -147,7 +232,7 @@ npm run dev</code></pre>
       </ul>
     </section>
 
-    <p class="tutorial-footnote">O arquivo <code>docker-compose.local.yml</code> e a atualização do Dockerfile precisam estar commitados e disponíveis no repositório do backend antes de Sabrina ou Manoela clonarem uma cópia nova.</p>
+    <p class="tutorial-footnote">Para usar o chat local, ambas precisam ter acesso ao repositório da API Java e ao repositório separado da Mila. O Compose monta a imagem da Mila a partir do código local em cada computador.</p>
   </main>
 
   <footer>MindU — tutorial para executar a API localmente em ambiente de desenvolvimento.</footer>

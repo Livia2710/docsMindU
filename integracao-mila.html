@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integrar a Mila · MindU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+<style>
+.guide { max-width: 980px; margin: 0 auto; }
+.guide > h2 { margin: 22px 0 8px; font-size: 1.8rem; }
+.guide > p { max-width: 78ch; }
+.guide section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin: 18px 0; }
+.guide section h3 { font-size: 1.2rem; margin-bottom: 10px; }
+.guide section h4 { color: var(--primary); margin: 18px 0 6px; }
+.guide li { margin: 7px 0; }
+.guide pre { overflow-x: auto; }
+.guide table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.guide th, .guide td { text-align: left; padding: 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.callout { border-left: 4px solid var(--focus); padding: 10px 14px; background: color-mix(in srgb, var(--focus) 9%, var(--panel)); border-radius: 6px; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>MindU · API</h1><div class="spacer"></div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
+    <div class="dl"><a href="index.html">← Rotas da API</a><a href="tutorial.html">Tutorial: ambiente local</a></div>
+  </div>
+  <main class="guide">
+    <p class="setup-note">Guia para Sabrina (React) e Manoela (Android)</p>
+    <h2>Como integrar a Mila no chat</h2>
+    <p>Este guia explica o que a Mila já faz, o que ainda não suporta e como o front deve enviar texto, manter o histórico da conversa e mandar áudio. O front chama sempre a API Java; não chama o serviço interno da Mila diretamente.</p>
+
+    <section>
+      <h3>1. O caminho de uma mensagem</h3>
+      <ol>
+        <li>A pessoa entra no MindU e o app/site obtém um JWT pelo login normal.</li>
+        <li>O front envia a mensagem para o Java com <code>Authorization: Bearer &lt;JWT&gt;</code>.</li>
+        <li>O Java valida a conta e encaminha o conteúdo para a API interna da Mila.</li>
+        <li>A Mila devolve uma resposta; o Java a devolve ao front.</li>
+      </ol>
+      <p>Use <code>POST /v1/chat</code> para texto e <code>POST /v1/chat/audio</code> para áudio. Não coloque <code>GROQ_API_KEY</code> nem <code>MILA_API_KEY</code> no projeto React, no APK, no Postman compartilhado ou no armazenamento do navegador/celular. O JWT do usuário é o único token que o front envia.</p>
+    </section>
+
+    <section>
+      <h3>2. O que está disponível hoje</h3>
+      <table>
+        <thead><tr><th>Recurso</th><th>Estado atual</th><th>O que o front faz</th></tr></thead>
+        <tbody>
+          <tr><td>Mensagem de texto</td><td>Suportada em <code>POST /v1/chat</code>.</td><td>Envia JSON com <code>message</code> e <code>history</code>.</td></tr>
+          <tr><td>Emojis</td><td>Podem vir no texto da resposta.</td><td>Exibe como texto Unicode normal.</td></tr>
+          <tr><td>Markdown</td><td>A resposta pode conter texto formatado.</td><td>Pode renderizar Markdown com uma biblioteca segura. Não use HTML bruto vindo da Mila.</td></tr>
+          <tr><td>Histórico</td><td>A API não salva conversas entre chamadas.</td><td>Mantém as mensagens no estado da tela e envia o histórico em cada requisição.</td></tr>
+          <tr><td>Áudio</td><td>Suportado em <code>POST /v1/chat/audio</code>; a Mila transcreve e responde.</td><td>Envia o arquivo com <code>multipart/form-data</code> e mostra <code>transcription</code>, se desejado.</td></tr>
+          <tr><td>PDF e imagem anexados pelo usuário</td><td>Não são lidos pela rota atual. A Mila devolve uma resposta informando que o tipo não é suportado.</td><td>Não prometa leitura. Pode ocultar o botão de anexo ou explicar a limitação na interface.</td></tr>
+        </tbody>
+      </table>
+      <p class="callout"><strong>PDFs da base de conhecimento são outra coisa:</strong> os documentos preparados pela equipe são usados no RAG do serviço Mila. Isso não significa que a pessoa possa anexar um PDF à conversa. Ler anexos enviados pelo usuário exigiria uma funcionalidade nova no backend.</p>
+    </section>
+
+    <section>
+      <h3>3. Fazer o histórico funcionar</h3>
+      <p>A Mila não possui memória própria entre requisições e o Java não persiste mensagens. “Lembrar” durante uma conversa é responsabilidade do front: ele guarda os turnos e reenvia os anteriores junto com a nova mensagem. Cada turno tem <code>role</code> (<code>user</code> ou <code>assistant</code>) e <code>content</code>. A requisição aceita até 20 turnos; por padrão, a Mila usa os últimos 8 na geração da resposta.</p>
+      <p>Exemplo: ao enviar “E quanto custa?”, o front deve incluir no histórico a pergunta e a resposta anteriores que dão contexto. A mensagem atual vai em <code>message</code>, separada do histórico.</p>
+      <pre><code>import { useState } from "react";
+
+const [mensagens, setMensagens] = useState([]);
+
+async function enviar(texto) {
+  const history = mensagens.map(({ role, content }) =&gt; ({ role, content }));
+  setMensagens(atual =&gt; [...atual, { role: "user", content: texto }]);
+
+  const resultado = await api("/v1/chat", {
+    method: "POST",
+    body: { message: texto, history }
+  });
+
+  setMensagens(atual =&gt; [...atual, {
+    role: "assistant", content: resultado.response
+  }]);
+}</code></pre>
+      <p>No Android, guardem a mesma lista no <code>ViewModel</code> enquanto a tela/conversa estiver aberta. Quando iniciar uma conversa nova, comecem com uma lista vazia. Se quiserem que a conversa sobreviva ao fechamento do app, isso exige armazenamento local adicional, por exemplo Room; combinem esse comportamento antes, pois mensagens podem conter informações pessoais de saúde. A API Java/Mila não recupera o histórico depois.</p>
+      <p>O front deve enviar no máximo 20 turnos e evitar mandar conversas inteiras muito longas. Cada conteúdo tem limite de 4.000 caracteres; a Mila normalmente usa apenas os últimos 8 turnos, conforme sua configuração.</p>
+    </section>
+
+    <section>
+      <h3>4. Enviar texto pelo React</h3>
+      <p>A função <code>api</code> da documentação já anexa o JWT salvo no login e serializa o objeto como JSON:</p>
+      <pre><code>const resposta = await api("/v1/chat", {
+  method: "POST",
+  body: { message: textoDigitado, history }
+});
+
+// Mostrar resposta.response no balão da Mila.
+// Não exibir debug_info como mensagem do chat.</code></pre>
+      <p>A resposta também inclui <code>intent</code>, <code>sources</code>, <code>missing_info</code>, <code>debug_info</code> e <code>transcription</code>. A interface de chat normalmente precisa exibir <code>response</code>; <code>transcription</code> é útil após áudio. <code>debug_info</code> é diagnóstico interno e não deve aparecer para a pessoa.</p>
+    </section>
+
+    <section>
+      <h3>5. Enviar texto pelo Android (Retrofit)</h3>
+      <pre><code>data class ChatTurn(val role: String, val content: String)
+data class ChatRequest(val message: String, val history: List&lt;ChatTurn&gt;)
+data class ChatResponse(
+    val response: String,
+    val intent: String,
+    val sources: List&lt;String&gt; = emptyList(),
+    val missing_info: Boolean = false,
+    val debug_info: Map&lt;String, Any&gt; = emptyMap(),
+    val transcription: String? = null
+)
+
+interface MinduApi {
+    @POST("v1/chat")
+    suspend fun enviarMensagem(@Body body: ChatRequest): ChatResponse
+}</code></pre>
+      <p>O interceptor Retrofit que já anexa <code>Authorization: Bearer &lt;JWT&gt;</code> deve atender também essa chamada. Se o app usa Java em vez de Kotlin, os mesmos campos podem ser declarados em classes DTO Java.</p>
+    </section>
+
+    <section>
+      <h3>6. Como funciona o áudio e a transcrição</h3>
+      <p>O navegador ou o app grava/seleciona o áudio e envia o arquivo para <code>POST /v1/chat/audio</code>. A Mila usa o serviço de transcrição configurado no backend (modelo Whisper via Groq), em português, e depois envia o texto transcrito ao fluxo normal de resposta. A tela não precisa chamar um serviço de transcrição separado.</p>
+      <p>Formatos aceitos atualmente incluem WebM, OGG, MP3, M4A/MP4, WAV e FLAC, com extensão e MIME compatíveis. O limite padrão é 10 MB. O retorno contém <code>response</code> e <code>transcription</code>. Se a gravação estiver vazia/ininteligível, a resposta informa isso. O funcionamento depende da chave e da disponibilidade do provedor configurado no servidor.</p>
+      <h4>React: enviar arquivo</h4>
+      <pre><code>async function enviarAudio(arquivo, history) {
+  const form = new FormData();
+  form.append("file", arquivo);
+  form.append("history", JSON.stringify(history));
+
+  return api("/v1/chat/audio", {
+    method: "POST",
+    body: form,
+    isFormData: true
+  });
+}
+
+// O helper mantém o Authorization, mas não define Content-Type.
+// O navegador precisa criar o boundary multipart sozinho.</code></pre>
+      <h4>Android: enviar arquivo com Retrofit</h4>
+      <pre><code>interface MinduApi {
+    @Multipart
+    @POST("v1/chat/audio")
+    suspend fun enviarAudio(
+        @Part file: MultipartBody.Part,
+        @Part("history") historyJson: RequestBody,
+        @Part("message") message: RequestBody? = null
+    ): ChatResponse
+}</code></pre>
+      <p>O arquivo deve ser uma parte chamada <code>file</code>, com nome e tipo de conteúdo corretos. Envie o histórico como texto JSON, por exemplo <code>[{"role":"user","content":"Oi"}]</code>. O mesmo interceptor deve anexar o JWT. Não envie a chave Groq/Mila no dispositivo.</p>
+      <p>Quando a resposta chegar, use <code>transcription</code> como texto da mensagem enviada pela pessoa e <code>response</code> como fala da Mila; acrescente os dois turnos ao histórico da tela para a próxima pergunta ter contexto.</p>
+    </section>
+
+    <section>
+      <h3>7. PDFs e imagens: o que mostrar na tela</h3>
+      <p>A rota de anexo aceita áudio. Se alguém enviar PDF ou imagem para ela, o serviço não extrai texto nem faz OCR/visão: devolve uma resposta amigável dizendo que o formato não é suportado. Para a primeira versão do front, escondam ou desabilitem anexos que não sejam áudio, ou mostrem essa resposta da Mila. Não enviem PDF/imagem esperando que o prompt resolva: o modelo não recebe o conteúdo desses arquivos.</p>
+      <p>Se a equipe decidir suportar isso futuramente, será uma alteração da API Mila e possivelmente do Java: leitura de PDF/OCR ou análise visual, validação de tipo e tamanho, tratamento de dados e configuração do provedor/modelo apropriado. A interface sozinha não adiciona essa capacidade.</p>
+    </section>
+
+    <section>
+      <h3>8. Respostas de erro úteis para depuração</h3>
+      <ul>
+        <li><code>401</code>: JWT ausente, inválido ou expirado. Faça login e tente novamente.</li>
+        <li><code>413</code>: áudio acima do limite. Reduza o arquivo.</li>
+        <li><code>422</code>: corpo, histórico ou arquivo inválido.</li>
+        <li><code>502</code>: Java não conseguiu falar com a Mila. Verifiquem os containers e as configurações locais do serviço.</li>
+      </ul>
+      <p>Para referência dos formatos completos dos corpos, vejam as rotas <a href="index.html#chat">Chatbot Mila</a>. Para iniciar Java, banco e API Mila localmente, usem o <a href="tutorial.html">tutorial do ambiente local</a>.</p>
+    </section>
+  </main>
+  <footer>MindU — guia de integração da Mila nos aplicativos clientes.</footer>
+</body>
+</html>

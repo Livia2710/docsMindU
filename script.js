@@ -410,6 +410,41 @@ Call<Void> excluirProfissional(@Path("id") String profissionalId);` },
       android: `@DELETE("v1/admin/clientes/{id}")
 Call<Void> excluirCliente(@Path("id") String clienteId);` }
   ]},
+  { id: "chat", nome: "Chatbot Mila", rotas: [
+    { m: "post", path: "/v1/chat", auth: "Autenticado", desc: "Envia uma mensagem de texto à Mila. Requer JWT; histórico é enviado pelo próprio cliente e não fica salvo no servidor.",
+      reqBody: { message: "O que é o MindU?", history: [{ role: "user", content: "Olá" }, { role: "assistant", content: "Oi! Como posso ajudar?" }] },
+      resBody: { response: "O MindU é...", intent: "sobre_mindu", sources: [], missing_info: false, debug_info: {}, transcription: null },
+      react: `const resultado = await api("/v1/chat", {
+  method: "POST",
+  body: { message: texto, history }
+});
+mostrarMensagemMila(resultado.response);`,
+      android: `@POST("v1/chat")
+Call<ChatResponse> enviarMensagem(@Body ChatRequest body);
+
+// ChatRequest: message (String), history (List<ChatTurn>).
+// Inclua o JWT no interceptor de autenticação já usado pelo app.` },
+    { m: "post", path: "/v1/chat/audio", auth: "Autenticado", desc: "Envia áudio para transcrição e resposta da Mila. multipart/form-data com file obrigatório, message e history opcionais. Imagens e PDFs não são suportados.",
+      isForm: true, reqBody: { file: "arquivo de áudio", message: "(opcional) texto adicional", history: "(opcional) histórico em JSON" },
+      resBody: { response: "...", intent: "normal", sources: [], missing_info: false, debug_info: {}, transcription: "texto reconhecido" },
+      react: `const form = new FormData();
+form.append("file", arquivoAudio);
+form.append("history", JSON.stringify(history));
+const resultado = await api("/v1/chat/audio", {
+  method: "POST", body: form, isFormData: true
+});
+// Não defina Content-Type manualmente; o navegador inclui o boundary.`,
+      android: `@Multipart
+@POST("v1/chat/audio")
+Call<ChatResponse> enviarAudio(
+    @Part MultipartBody.Part file,
+    @Part("message") RequestBody message,
+    @Part("history") RequestBody historyJson
+);
+
+// historyJson é a lista de turnos serializada como JSON.
+// Não inclua chave interna da Mila no app.` }
+  ]},
   { id: "agendamento", nome: "Agendamento", rotas: [
     { m: "post", path: "/v1/agendamentos", auth: "Cliente", desc: "Agendar uma consulta",
       reqBody: { profissionalId: "<uuid>", dataHora: "2026-10-20T09:00:00", modalidade: "VIRTUAL" },
@@ -452,6 +487,17 @@ function codClasse(codigo) {
 }
 
 const ERROS_COMUNS = {
+  "POST /v1/chat": [
+    { codigo: "401", motivo: "JWT ausente, inválido ou expirado", correcao: "faça login novamente e envie Authorization: Bearer <token>" },
+    { codigo: "422", motivo: "mensagem ou histórico fora do formato/limite aceito", correcao: "envie message com 1–4.000 caracteres e no máximo 20 turnos user/assistant" },
+    { codigo: "502", motivo: "Java não conseguiu completar a chamada à Mila", correcao: "confira se o container Mila está saudável, a chave interna dos dois serviços coincide e veja docker compose logs api mila" }
+  ],
+  "POST /v1/chat/audio": [
+    { codigo: "401", motivo: "JWT ausente, inválido ou expirado", correcao: "faça login novamente e envie Authorization: Bearer <token>" },
+    { codigo: "413", motivo: "arquivo maior que o limite configurado", correcao: "reduza o áudio; o limite padrão do serviço Mila é 10 MB" },
+    { codigo: "422", motivo: "arquivo não é áudio suportado ou campos inválidos", correcao: "envie um arquivo de áudio aceito e history como string JSON; imagens e PDFs não são aceitos" },
+    { codigo: "502", motivo: "Java não conseguiu completar a chamada à Mila", correcao: "confira se o container Mila está saudável e veja os logs dos containers api e mila" }
+  ],
   "GET /v1/auth/me": [
     { codigo: "401", motivo: "token ausente, inválido ou expirado", correcao: "faça login novamente em POST /v1/auth/login e envie o token Bearer" }
   ],
