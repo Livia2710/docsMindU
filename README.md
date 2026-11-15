@@ -46,13 +46,29 @@ As Issues servem também como lista do que ainda precisa ser implementado na API
 ├── index.html                      # catálogo de rotas
 ├── rota.html                       # modelo da página de detalhe de cada rota
 ├── tutorial.html                   # como iniciar a API local e conectar React/Android
+├── integracao-mila.html            # guia para o chatbot
 ├── style.css                       # estilos e paleta (claro/escuro)
-├── script.js                       # dados das rotas e montagem da página
-├── mindu-modelagem.html            # artefato de modelagem (link de download no topo)
+├── script.js                       # eventos, filtros, renderização e inicialização
+├── data/
+│   ├── routes/                     # contratos e exemplos por domínio
+│   │   ├── auth.js
+│   │   ├── planos.js
+│   │   ├── empresa.js
+│   │   ├── cliente.js
+│   │   ├── profissional.js
+│   │   ├── admin.js
+│   │   ├── chat.js
+│   │   └── agendamento.js
+│   ├── route-errors.js             # erros comuns por rota
+│   ├── route-guides.js             # guias de uso por rota
+│   └── field-help.js               # explicações dos campos
 ├── docs/
+│   ├── mindu-modelagem.html        # artefato de modelagem
 │   └── mindu-postman-collection.json # coleção Postman (link de download no topo)
 └── README.md
 ```
+
+Os arquivos de dados são scripts clássicos carregados em ordem no `index.html` e no `rota.html`, antes de `script.js`. Essa organização mantém os exemplos separados da renderização e funciona sem build ou servidor de módulos, inclusive quando os arquivos são servidos localmente.
 
 ## Como rodar localmente
 
@@ -63,7 +79,7 @@ As Issues servem também como lista do que ainda precisa ser implementado na API
 
 ## Como adicionar ou editar uma rota
 
-Todas as rotas ficam no array `RESOURCES`, em `script.js`. Para adicionar uma, inclua um objeto no grupo certo:
+Os contratos ficam em `data/routes/`, separados por domínio. Para adicionar uma rota, inclua o objeto no grupo correspondente em `window.MINDU_ROUTE_GROUPS.push(...)`:
 
 ```js
 {
