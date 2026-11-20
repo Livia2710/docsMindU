@@ -1,7 +1,7 @@
 window.MINDU_ROUTE_GROUPS = window.MINDU_ROUTE_GROUPS || [];
 window.MINDU_ROUTE_GROUPS.push(
 { id: "auth", nome: "Autenticação", rotas: [
-    { m: "post", path: "/v1/auth/login", auth: "Público", desc: "Login — retorna o token JWT",
+    { m: "post", path: "/v1/auth/login", auth: "Público", desc: "Login — normaliza o e-mail (trim + minúsculas) e retorna JWT válido por 1 hora; não há refresh token",
       reqBody: { email: "cliente@empresa.com", senha: "Senha@1234" },
       resBody: { token: "eyJhbGciOiJIUzI1NiJ9...", tipo: "CLIENTE" },
       react: `const { token, tipo } = await api("/v1/auth/login", {
@@ -20,7 +20,8 @@ Call<LoginResponse> login(@Body LoginRequest body);
 api.login(new LoginRequest(email, senha)).enqueue(new Callback<>() {
     public void onResponse(Call<LoginResponse> call, Response<LoginResponse> res) {
         String token = res.body().getToken();
-        prefs.edit().putString("token", token).apply();
+        SharedPreferences securePrefs = RetrofitClient.getSecurePreferences(context);
+        securePrefs.edit().putString("token", token).apply();
         api.minhaConta().enqueue(new Callback<>() {
             public void onResponse(Call<MinhaContaResponse> call, Response<MinhaContaResponse> perfil) {
                 if (perfil.isSuccessful()) {

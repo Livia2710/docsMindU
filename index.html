@@ -47,10 +47,11 @@
       <div class="intro">
         <h2>Como usar esta página</h2>
         <p>Clique em uma rota para ver um resumo. O botão <strong>Abrir guia detalhado</strong> leva a uma página própria com pré-requisitos, passos, campos, autenticação, respostas, erros comuns e exemplos para React e Android. Use o seletor <strong>Local / Web</strong> no topo para trocar o endereço em todos os exemplos.</p>
-        <p><strong>Local:</strong> <code>http://localhost:8080</code> — precisa do backend rodando no seu computador (<code>docker compose -f docker-compose.local.yml up</code>; veja o <a href="tutorial.html">tutorial</a>).<br>
-        <strong>Web:</strong> <code id="web-url-display">https://mindu-api.onrender.com</code> — sempre disponível, mas pode levar até 1 minuto para responder na primeira chamada do dia (o serviço "dorme" quando fica sem uso).</p>
-        <p>Toda rota, exceto as marcadas <span class="auth-pill">público</span>, exige o cabeçalho <code>Authorization: Bearer &lt;token&gt;</code>, obtido no login.</p>
-      <p><strong>Importante sobre o login:</strong> <code>POST /v1/auth/login</code> retorna apenas <code>token</code> e <code>tipo</code>. Depois de salvar o token, chame <code>GET /v1/auth/me</code> com <code>Authorization: Bearer &lt;token&gt;</code> para receber <code>id</code>, <code>nome</code> e <code>email</code>. A API identifica a conta pelo token nas rotas <code>/me</code>. Para sair, apague o token salvo no app/site.</p>
+        <p><strong>Local:</strong> <code>http://localhost:8080</code> — precisa do backend rodando no computador (copie <code>.env.example</code> para <code>.env</code> e execute <code>docker compose -f docker-compose.local.yml up --build</code>; veja o <a href="tutorial.html">tutorial</a>).<br>
+        <strong>Web:</strong> <code id="web-url-display">https://mindu-api.onrender.com</code> — o Render pode entrar em cold start; a primeira requisição após inatividade pode levar aproximadamente 1 minuto.</p>
+        <p>Toda rota, exceto as marcadas <span class="auth-pill">público</span>, exige o cabeçalho <code>Authorization: Bearer &lt;token&gt;</code>, obtido no login. Erros, inclusive 401 (não autenticado) e 403 (sem permissão), retornam JSON com <code>erro</code>, por exemplo <code>{"erro":"Não autenticado ou token inválido/expirado","status":401}</code>. Validações incluem <code>campos</code>, por exemplo <code>{"erro":"Erro de validação","campos":{"email":"Formato inválido"},"status":400}</code>.<br>
+        Status documentados: <code>400</code> validação/requisição, <code>401</code> autenticação, <code>403</code> autorização, <code>404</code> não encontrado, <code>409</code> conflito, <code>413</code> upload grande, <code>429</code> limite de login (header <code>Retry-After</code>) e <code>502</code> integração indisponível.</p>
+      <p><strong>Importante sobre o login:</strong> <code>POST /v1/auth/login</code> normaliza o e-mail com trim e minúsculas, portanto maiúsculas/minúsculas não fazem diferença. Retorna apenas <code>token</code> e <code>tipo</code>; o JWT expira em 1 hora e não há refresh token. Depois de salvar o token, chame <code>GET /v1/auth/me</code> para receber <code>id</code>, <code>nome</code> e <code>email</code>. Use rotas <code>/me</code> quando disponíveis. Limite padrão: 10 tentativas de login por minuto por IP; excedê-lo retorna 429 com <code>Retry-After</code>, header exposto via CORS para leitura no JavaScript. Para sair ou ao receber 401, apague o token e redirecione para o login.</p>
       </div>
 
       <div class="setup">
@@ -67,7 +68,7 @@ export function getToken() {
   return localStorage.getItem("mindu_token");
 }
 
-export async function api(path, { method = "GET", body, isFormData = false } = {}) {
+export async function api(path, { method = "GET", body, isFormData = false, onResponse } = {}) {
   const headers = {};
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -78,33 +79,66 @@ export async function api(path, { method = "GET", body, isFormData = false } = {
     headers,
     body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   });
+  if (onResponse) onResponse(res); // permite ler Retry-After e headers de paginação
 
   if (!res.ok) {
     const erro = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      localStorage.removeItem("mindu_token");
+      window.location.assign("/login"); // ajuste à rota de login do seu front
+    }
+    if (res.status === 403) throw new Error(erro.erro || "Sem permissão para este recurso");
     throw new Error(erro.erro || erro.message || `Erro ${res.status}`);
   }
   return res.status === 204 ? null : res.json();
+}
+
+// Nas respostas do Admin, estes headers de paginação estão expostos via CORS.
+export async function carregarPaginaProfissionais() {
+  let pagina;
+  const profissionais = await api("/v1/admin/profissionais?page=0&amp;size=20", {
+    onResponse: resposta => pagina = {
+      total: Number(resposta.headers.get("X-Total-Count")),
+      page: Number(resposta.headers.get("X-Page")),
+      pageSize: Number(resposta.headers.get("X-Page-Size")),
+      totalPages: Number(resposta.headers.get("X-Total-Pages")),
+    }
+  });
+  return { profissionais, pagina };
 }</code></pre>
         </div>
         <div class="panel" data-panel="android">
           <p class="setup-note">Adicione ao <code>build.gradle</code> (module: app):</p>
           <pre><code>implementation("com.squareup.retrofit2:retrofit:2.11.0")
 implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")</code></pre>
+implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+// Use androidx.security:security-crypto para EncryptedSharedPreferences</code></pre>
       <p class="setup-note setup-note-spaced"><code>RetrofitClient.java</code> — monta o cliente e injeta o token salvo:</p>
       <pre><code>public class RetrofitClient {
     private static final String BASE_URL = "<span class="baseurl">http://10.0.2.2:8080</span>/"; // emulador -> localhost da máquina
     private static Retrofit retrofit;
 
+    public static SharedPreferences getSecurePreferences(Context context) {
+        try {
+            MasterKey key = new MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build();
+            return EncryptedSharedPreferences.create("mindu_secure", key, context,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+        } catch (Exception e) { throw new IllegalStateException("Não foi possível abrir o armazenamento seguro", e); }
+    }
+
     public static Retrofit getInstance(Context context) {
         if (retrofit == null) {
             OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(chain -> {
-                    SharedPreferences prefs = context.getSharedPreferences("mindu", Context.MODE_PRIVATE);
-                    String token = prefs.getString("token", null);
+                    SharedPreferences securePrefs = getSecurePreferences(context);
+                    String token = securePrefs.getString("token", null);
                     Request.Builder b = chain.request().newBuilder();
                     if (token != null) b.addHeader("Authorization", "Bearer " + token);
-                    return chain.proceed(b.build());
+                    Response response = chain.proceed(b.build());
+                    if (response.code() == 401) securePrefs.edit().remove("token").apply();
+                    // A camada de tela redireciona ao login no 401; no 403, informa falta de permissão.
+                    return response;
                 })
                 .addInterceptor(new HttpLoggingInterceptor().setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BASIC : HttpLoggingInterceptor.Level.NONE))
                 .build();
@@ -118,8 +152,8 @@ implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")</code></pre>
         return retrofit;
     }
 }</code></pre>
-          <p class="setup-note setup-note-compact">No emulador Android, <code>10.0.2.2</code> aponta para o <code>localhost</code> do seu PC. Em um celular físico na mesma rede, use o IP local da máquina (ex.: <code>192.168.x.x</code>) em vez disso — a URL Web funciona igual nos dois casos.</p>
-          <p class="setup-note setup-note-spaced">Cada rota abaixo mostra só o método da interface <code>ApiService</code> e a chamada — adicione o método correspondente à sua interface conforme for implementando.</p>
+          <p class="setup-note setup-note-compact">No emulador Android, use a base URL <code>http://10.0.2.2:8080/</code>; <code>localhost</code> aponta para o próprio emulador. Android 9 ou posterior costuma bloquear HTTP sem TLS: configure um network security config no app para liberar HTTP somente para <code>10.0.2.2</code> e apenas no build de debug. Essa configuração pertence ao repositório Android, não a esta API. Em produção use HTTPS (<code>https://mindu-api.onrender.com</code>).</p>
+          <p class="setup-note setup-note-spaced">Guarde o JWT em <code>EncryptedSharedPreferences</code>; ele expira em 1 hora e não há refresh token. Ao receber 401, remova o token e encaminhe a pessoa ao login; no 403, mantenha a sessão e informe que o recurso não é permitido. Cada rota abaixo mostra só o método da interface <code>ApiService</code> e a chamada — adicione o método correspondente à sua interface conforme for implementando.</p>
         </div>
       </div>
 

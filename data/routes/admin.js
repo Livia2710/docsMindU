@@ -1,10 +1,18 @@
 window.MINDU_ROUTE_GROUPS = window.MINDU_ROUTE_GROUPS || [];
 window.MINDU_ROUTE_GROUPS.push(
 { id: "admin", nome: "Admin", rotas: [
-    { m: "get", path: "/v1/admin/profissionais", auth: "Admin", desc: "Listar profissionais; filtros opcionais status e ativo. Paginação opcional com page (inicia em 0) e size (1–100); sem esses parâmetros, retorna a lista completa. Quando paginado, consulte X-Total-Count, X-Page, X-Page-Size e X-Total-Pages nos headers.",
+    { m: "get", path: "/v1/admin/profissionais", auth: "Admin", desc: "Listar profissionais; filtros opcionais status e ativo. Paginação opcional com page (inicia em 0) e size (1–100); sem esses parâmetros, retorna a lista completa. Quando paginado, leia X-Total-Count, X-Page, X-Page-Size e X-Total-Pages no JavaScript; estão expostos via CORS.",
       reqBody: null,
       resBody: [{ id: "<uuid>", nome: "Dr. João Lima", status: "PENDENTE", ativo: true }],
-      react: `const profissionais = await api("/v1/admin/profissionais?status=PENDENTE&ativo=true&page=0&size=20");`,
+      react: `let pagina;
+const profissionais = await api("/v1/admin/profissionais?status=PENDENTE&ativo=true&page=0&size=20", {
+  onResponse: resposta => pagina = {
+    total: Number(resposta.headers.get("X-Total-Count")),
+    page: Number(resposta.headers.get("X-Page")),
+    pageSize: Number(resposta.headers.get("X-Page-Size")),
+    totalPages: Number(resposta.headers.get("X-Total-Pages")),
+  }
+});`,
       android: `@GET("v1/admin/profissionais")
 Call<List<ProfissionalResponse>> listarProfissionais(@Query("status") String status,
     @Query("ativo") Boolean ativo, @Query("page") Integer page, @Query("size") Integer size);
@@ -31,14 +39,14 @@ const imagemUrl = URL.createObjectURL(await resposta.blob());`,
       android: `@GET("v1/admin/profissionais/{id}/foto")
 Call<ResponseBody> fotoProfissional(@Path("id") String id);
 // O interceptor do Retrofit deve enviar Authorization: Bearer <token>.` },
-    { m: "get", path: "/v1/admin/profissionais/pendentes", auth: "Admin", desc: "Listar profissionais aguardando aprovação; paginação opcional com page (inicia em 0) e size (1–100)",
+    { m: "get", path: "/v1/admin/profissionais/pendentes", auth: "Admin", desc: "Listar profissionais aguardando aprovação; paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.",
       reqBody: null,
       resBody: [{ id: "<uuid>", nome: "Dr. João Lima", status: "PENDENTE", ativo: true }],
       react: `const pendentes = await api("/v1/admin/profissionais/pendentes?page=0&size=20");`,
       android: `@GET("v1/admin/profissionais/pendentes")
 Call<List<ProfissionalResponse>> profissionaisPendentes(@Query("page") Integer page,
     @Query("size") Integer size);` },
-    { m: "get", path: "/v1/admin/clientes", auth: "Admin", desc: "Listar clientes; filtros opcionais status, empresaId e ativo. Paginação opcional com page (inicia em 0) e size (1–100); sem paginação retorna a lista completa. Respostas paginadas trazem metadados nos headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages.",
+    { m: "get", path: "/v1/admin/clientes", auth: "Admin", desc: "Listar clientes; filtros opcionais status, empresaId e ativo. Paginação opcional com page (inicia em 0) e size (1–100); sem paginação retorna a lista completa. Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages são expostos via CORS.",
       reqBody: null,
       resBody: [{ id: "<uuid>", nome: "Maria Silva", empresaId: "<uuid>", status: "APROVADO", ativo: true, dataCadastro: "2026-11-15T10:30:00" }],
       react: `const clientes = await api("/v1/admin/clientes?empresaId=" + empresaId + "&ativo=true&page=0&size=20");`,
@@ -46,21 +54,21 @@ Call<List<ProfissionalResponse>> profissionaisPendentes(@Query("page") Integer p
 Call<List<ClienteResponse>> listarClientes(@Query("status") String status,
     @Query("empresaId") String empresaId, @Query("ativo") Boolean ativo,
     @Query("page") Integer page, @Query("size") Integer size);` },
-    { m: "get", path: "/v1/admin/empresas", auth: "Admin", desc: "Listar empresas; filtro opcional ativo e paginação opcional com page (inicia em 0) e size (1–100)",
+    { m: "get", path: "/v1/admin/empresas", auth: "Admin", desc: "Listar empresas; filtro opcional ativo e paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.",
       reqBody: null,
       resBody: [{ id: "<uuid>", razaoSocial: "Acme Ltda", plano: "Plano Start", ativo: true }],
       react: `const empresas = await api("/v1/admin/empresas?ativo=true&page=0&size=20");`,
       android: `@GET("v1/admin/empresas")
 Call<List<EmpresaResponse>> listarEmpresas(@Query("ativo") Boolean ativo,
     @Query("page") Integer page, @Query("size") Integer size);` },
-    { m: "get", path: "/v1/admin/solicitacoes-exclusao", auth: "Admin", desc: "Listar solicitações; filtro opcional status e paginação opcional com page (inicia em 0) e size (1–100)",
+    { m: "get", path: "/v1/admin/solicitacoes-exclusao", auth: "Admin", desc: "Listar solicitações; filtro opcional status e paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.",
       reqBody: null,
       resBody: [{ id: "<uuid>", usuarioId: "<uuid>", email: "maria@email.com", tipoConta: "CLIENTE", status: "PENDENTE", solicitadaEm: "2026-11-15T10:30:00" }],
       react: `const solicitacoes = await api("/v1/admin/solicitacoes-exclusao?status=PENDENTE&page=0&size=20");`,
       android: `@GET("v1/admin/solicitacoes-exclusao")
 Call<List<SolicitacaoExclusaoResponse>> listarSolicitacoes(
     @Query("status") String status, @Query("page") Integer page, @Query("size") Integer size);` },
-    { m: "get", path: "/v1/admin/agendamentos", auth: "Admin", desc: "Listar agendamentos; filtros opcionais status, clienteId e profissionalId. Paginação opcional com page (inicia em 0) e size (1–100)",
+    { m: "get", path: "/v1/admin/agendamentos", auth: "Admin", desc: "Listar agendamentos; filtros opcionais status, clienteId e profissionalId. Paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.",
       reqBody: null,
       resBody: [{ id: "<uuid>", clienteId: "<uuid>", clienteNome: "Maria Silva", profissionalId: "<uuid>", profissionalNome: "Dr. João Lima", status: "AGENDADO" }],
       react: `const agendamentos = await api("/v1/admin/agendamentos?status=AGENDADO&clienteId=" + clienteId + "&page=0&size=20");`,
