@@ -7,7 +7,7 @@ window.MINDU_ROUTE_GUIDES = {
       "Envie GET /v1/auth/me com Authorization: Bearer <token> para obter id, nome e email.",
       "Use as rotas /me sempre que possível. Elas identificam a conta pelo token."
     ],
-    notes: ["Senha ou email incorreto retorna 401.", "O limite atual é de 10 tentativas por minuto por IP; 429 inclui Retry-After.", "Após trocar a senha, faça login novamente: tokens anteriores são invalidados."]
+    notes: ["O servidor remove espaços das extremidades e converte o e-mail para minúsculas; Ana@x.com e ana@x.com são equivalentes.", "Senha ou e-mail incorreto retorna 401 em JSON. O JWT expira em 1 hora e não há refresh token.", "O limite padrão é 10 tentativas por minuto por IP; 429 inclui Retry-After e o limite pode ser ajustado por mindu.login.limite-por-minuto.", "No React, trate 401 limpando a sessão e redirecionando para o login; 403 indica falta de permissão e não exige encerrar a sessão."]
   },
   "GET /v1/auth/me": {
     summary: "Esta chamada completa o login no front: retorna id, nome, email e tipo da conta autenticada.",
@@ -32,6 +32,14 @@ window.MINDU_ROUTE_GUIDES = {
   "GET /v1/profissionais/{id}/horarios-disponiveis": {
     summary: "Alternativa recomendada para consultar horários livres: envie data como query param no formato AAAA-MM-DD.",
     steps: ["Use GET /v1/profissionais/{id}/horarios-disponiveis?data=AAAA-MM-DD.", "A resposta é uma lista de horários locais disponíveis.", "Esta é a rota preferencial para novos consumidores."]
+  },
+  "GET /v1/profissionais/me": {
+    summary: "Perfil do profissional autenticado; rota /me recomendada para novos consumidores.",
+    steps: ["Envie o JWT de PROFISSIONAL no cabeçalho Authorization.", "A identidade do profissional é obtida pelo token, sem enviar ID na URL.", "Use 401 para sessão ausente/inválida e 403 quando o token for de outro tipo de conta."]
+  },
+  "GET /v1/profissionais/conta/perfil": {
+    summary: "Rota antiga mantida por compatibilidade; prefira GET /v1/profissionais/me.",
+    steps: ["Continua funcionando com token de PROFISSIONAL.", "Novos consumidores devem usar GET /v1/profissionais/me."]
   },
   "POST /v1/profissionais/{id}/horarios-disponiveis": {
     summary: "OBSOLETO: continua funcionando por compatibilidade, mas não é recomendado para novos consumidores. Prefira GET /v1/profissionais/{id}/horarios-disponiveis?data=AAAA-MM-DD.",

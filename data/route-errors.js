@@ -110,6 +110,14 @@ window.MINDU_ROUTE_ERRORS = {
     { codigo: "400", motivo: "data ausente ou formato inválido", correcao: "informe ?data=AAAA-MM-DD na query" },
     { codigo: "404", motivo: "profissional inexistente ou não aprovado", correcao: "confira o id do profissional aprovado" }
   ],
+  "GET /v1/profissionais/me": [
+    { codigo: "401", motivo: "token ausente, inválido ou expirado (resposta JSON)", correcao: "faça login novamente e envie Authorization: Bearer <token>" },
+    { codigo: "403", motivo: "token válido de outro tipo de conta (resposta JSON)", correcao: "use o token da conta PROFISSIONAL" }
+  ],
+  "GET /v1/profissionais/conta/perfil": [
+    { codigo: "401", motivo: "token ausente, inválido ou expirado (resposta JSON)", correcao: "faça login novamente e prefira GET /v1/profissionais/me" },
+    { codigo: "403", motivo: "token válido de outro tipo de conta (resposta JSON)", correcao: "use o token da conta PROFISSIONAL" }
+  ],
   "GET /v1/profissionais/{id}/foto": [
     { codigo: "404", motivo: "foto não cadastrada ou perfil não aprovado", correcao: "confira se o profissional já enviou a foto" }
   ],

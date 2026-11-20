@@ -2,7 +2,7 @@
   "info": {
     "name": "MindU — Backend (roteiro de testes)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Antes de rodar: preencha planoId e adminSenha (aba Variables) e selecione um arquivo no cadastro profissional. Rode as pastas 01 a 06 em ordem. O login retorna token/tipo; use GET /v1/auth/me para id/nome. Consulte horários preferencialmente por GET; o POST antigo segue disponível como obsoleto. Login tem limite de 10 tentativas por minuto por IP (429), sem bloqueio por conta."
+    "description": "Antes de rodar: preencha planoId e adminSenha (aba Variables) e selecione um arquivo no cadastro profissional. Rode as pastas 01 a 06 em ordem. Erros retornam JSON {erro}; validações incluem campos. 401 e 403 também são JSON. Login normaliza e-mail (trim + minúsculas), JWT expira em 1 hora e não há refresh token. Limite: 10 tentativas/minuto/IP; 429 inclui Retry-After. Listagens admin paginadas usam X-Total-Count, X-Page, X-Page-Size e X-Total-Pages (expostos via CORS). Consulte horários preferencialmente por GET; o POST antigo continua disponível como obsoleto."
   },
   "variable": [
     {
@@ -272,7 +272,36 @@
           }
         },
         {
-          "name": "1.4 Dashboard da empresa",
+          "name": "1.4 Gerar matrículas da empresa autenticada (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201 Created\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Retorna uma lista\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/empresas/me/matriculas?quantidade=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "empresas", "me", "matriculas"],
+              "query": [{"key": "quantidade", "value": "1"}]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{tokenEmpresa}}", "type": "string"}]
+            }
+          }
+        },
+        {
+          "name": "1.5 Dashboard da empresa",
           "event": [
             {
               "listen": "test",
@@ -363,7 +392,18 @@
         },
         {
           "name": "2.2 Login do cliente",
+          "description": "Envia o e-mail em maiúsculas e com espaços nas extremidades para demonstrar a normalização do servidor.",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = pm.collectionVariables.get(\"clienteEmail\");",
+                  "pm.collectionVariables.set(\"clienteEmailMaiusculo\", ` ${email.toUpperCase()} `);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -396,7 +436,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaPadrao}}\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmailMaiusculo}}\",\n  \"senha\": \"{{senhaPadrao}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -413,7 +453,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Erro 403 em JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));"
                 ]
               }
             }
@@ -1063,6 +1104,48 @@
               "raw": "{\n  \"data\": \"{{dataAgendamento}}\"\n}",
               "options": {"raw": {"language": "json"}}
             }
+          }
+        },
+        {
+          "name": "3.11 Meu perfil profissional (GET /me)",
+          "description": "Rota recomendada; identidade obtida do token do profissional.",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+            "pm.test(\"Retorna perfil\", () => pm.expect(pm.response.json()).to.have.property(\"id\"));"
+          ]}}],
+          "request": {
+            "method": "GET", "header": [],
+            "url": {"raw": "{{baseUrl}}/v1/profissionais/me", "host": ["{{baseUrl}}"], "path": ["v1", "profissionais", "me"]},
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{tokenProfissional}}", "type": "string"}]}
+          }
+        },
+        {
+          "name": "3.12 Perfil profissional legado (compatibilidade)",
+          "description": "Continua disponível; em novas integrações, prefira 3.11 GET /v1/profissionais/me.",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+            "pm.test(\"Retorna perfil\", () => pm.expect(pm.response.json()).to.have.property(\"id\"));"
+          ]}}],
+          "request": {
+            "method": "GET", "header": [],
+            "url": {"raw": "{{baseUrl}}/v1/profissionais/conta/perfil", "host": ["{{baseUrl}}"], "path": ["v1", "profissionais", "conta", "perfil"]},
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{tokenProfissional}}", "type": "string"}]}
+          }
+        },
+        {
+          "name": "3.13 Lista paginada do Admin e headers CORS",
+          "description": "Verifica metadados de paginação e que o navegador pode ler os headers expostos.",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+            "[\"X-Total-Count\", \"X-Page\", \"X-Page-Size\", \"X-Total-Pages\"].forEach(h => pm.test(h + \" presente\", () => pm.expect(pm.response.headers.get(h)).to.not.be.null));",
+            "const expostos = pm.response.headers.get(\"Access-Control-Expose-Headers\") || \"\";",
+            "[\"X-Total-Count\", \"X-Page\", \"X-Page-Size\", \"X-Total-Pages\"].forEach(h => pm.test(h + \" exposto via CORS\", () => pm.expect(expostos.toLowerCase()).to.include(h.toLowerCase())));"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Origin", "value": "http://localhost:5173"}],
+            "url": {"raw": "{{baseUrl}}/v1/admin/profissionais?page=0&size=5", "host": ["{{baseUrl}}"], "path": ["v1", "admin", "profissionais"], "query": [{"key": "page", "value": "0"}, {"key": "size", "value": "5"}]},
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{tokenAdmin}}", "type": "string"}]}
           }
         }
       ]
@@ -1794,7 +1877,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Campos de validação\", () => pm.expect(pm.response.json().campos).to.be.an(\"object\"));"
                 ]
               }
             }
@@ -1824,7 +1908,7 @@
                 }
               }
             },
-            "description": "Só passa depois de colocar @Size(min = 8) nos DTOs de cadastro."
+            "description": "Senha menor que 8 gera HTTP 400 no formato padrão; a resposta deve incluir campos.senha."
           }
         },
         {
@@ -1835,7 +1919,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Erro 401 em JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));"
                 ]
               }
             }
@@ -1866,7 +1951,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Status 401 ou 429\", () => pm.expect([401, 429]).to.include(pm.response.code));",
+                  "pm.test(\"Resposta de erro JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));",
+                  "if (pm.response.code === 429) pm.test(\"Retry-After presente\", () => pm.expect(pm.response.headers.get(\"Retry-After\")).to.not.be.null);"
                 ]
               }
             }
@@ -1907,7 +1994,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Status 401 ou 429\", () => pm.expect([401, 429]).to.include(pm.response.code));",
+                  "pm.test(\"Resposta de erro JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));",
+                  "if (pm.response.code === 429) pm.test(\"Retry-After presente\", () => pm.expect(pm.response.headers.get(\"Retry-After\")).to.not.be.null);"
                 ]
               }
             }
@@ -1948,7 +2037,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Status 401 ou 429\", () => pm.expect([401, 429]).to.include(pm.response.code));",
+                  "pm.test(\"Resposta de erro JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));",
+                  "if (pm.response.code === 429) pm.test(\"Retry-After presente\", () => pm.expect(pm.response.headers.get(\"Retry-After\")).to.not.be.null);"
                 ]
               }
             }
@@ -1989,7 +2080,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Status 401 ou 429\", () => pm.expect([401, 429]).to.include(pm.response.code));",
+                  "pm.test(\"Resposta de erro JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));",
+                  "if (pm.response.code === 429) pm.test(\"Retry-After presente\", () => pm.expect(pm.response.headers.get(\"Retry-After\")).to.not.be.null);"
                 ]
               }
             }
@@ -2030,7 +2123,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Status 401 ou 429\", () => pm.expect([401, 429]).to.include(pm.response.code));",
+                  "pm.test(\"Resposta de erro JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));",
+                  "if (pm.response.code === 429) pm.test(\"Retry-After presente\", () => pm.expect(pm.response.headers.get(\"Retry-After\")).to.not.be.null);"
                 ]
               }
             }
@@ -2071,7 +2166,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Status 401 ou 429\", () => pm.expect([401, 429]).to.include(pm.response.code));",
+                  "pm.test(\"Resposta de erro JSON\", () => pm.expect(pm.response.json()).to.have.property(\"erro\"));",
+                  "if (pm.response.code === 429) pm.test(\"Retry-After presente\", () => pm.expect(pm.response.headers.get(\"Retry-After\")).to.not.be.null);"
                 ]
               }
             }
@@ -2105,14 +2202,16 @@
           }
         },
         {
-          "name": "6.15 Senha certa depois das tentativas inválidas → login continua funcionando",
+          "name": "6.15 Login correto após falhas: 200 ou limite 429",
+          "description": "Se o limite por IP ainda não foi atingido, login válido retorna 200. Se retornar 429, confira Retry-After e repita após aguardar. Execute esta sequência somente no ambiente local controlado.",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Status 200 ou 429\", () => pm.expect([200, 429]).to.include(pm.response.code));",
+                  "if (pm.response.code === 429) pm.test(\"Retry-After presente\", () => pm.expect(pm.response.headers.get(\"Retry-After\")).to.not.be.null);"
                 ]
               }
             }
@@ -2147,7 +2246,7 @@
           }
         }
       ],
-      "description": "Rode por último: testa validações negativas e confirma que senha incorreta não bloqueia a conta; o limite por IP responde 429."
+      "description": "Rode por último. Os logins negativos aceitam 401 ou 429 e verificam Retry-After quando limitado. Execute esta sequência somente em Local com contas de teste controladas; nunca a rode contra produção."
     }
   ]
 }
