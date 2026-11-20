@@ -27,7 +27,12 @@ Call<ProfissionalResponse> cadastrar(
 // montando a foto a partir de um File:
 RequestBody fotoBody = RequestBody.create(arquivoFoto, MediaType.parse("image/jpeg"));
 MultipartBody.Part foto = MultipartBody.Part.createFormData("fotoCarteirinha", arquivoFoto.getName(), fotoBody);` },
-    { m: "get", path: "/v1/profissionais/conta/perfil", auth: "Profissional", desc: "Consultar perfil da conta profissional autenticada",
+    { m: "get", path: "/v1/profissionais/me", auth: "Profissional", desc: "Consultar perfil da conta profissional autenticada (rota /me recomendada)",
+      reqBody: null, resBody: { id: "<uuid>", nome: "João Lima", bio: "Atendimento acolhedor", tipo: "PSICOLOGO", tags: ["ansiedade"], status: "PENDENTE" },
+      react: `const perfil = await api("/v1/profissionais/me");`,
+      android: `@GET("v1/profissionais/me")
+Call<ProfissionalResponse> meuPerfil();` },
+    { m: "get", path: "/v1/profissionais/conta/perfil", auth: "Profissional", desc: "Consultar perfil autenticado; rota antiga mantida por compatibilidade, prefira GET /v1/profissionais/me",
       reqBody: null, resBody: { id: "<uuid>", nome: "João Lima", bio: "Atendimento acolhedor", tipo: "PSICOLOGO", tags: ["ansiedade"], status: "PENDENTE" },
       react: `const perfil = await api("/v1/profissionais/conta/perfil");`,
       android: `@GET("v1/profissionais/conta/perfil")
@@ -81,7 +86,13 @@ Call<List<ProfissionalResponse>> buscar(@Query("modalidade") String modalidade,
       react: `const profissional = await api("/v1/profissionais/" + profissionalId);`,
       android: `@GET("v1/profissionais/{id}")
 Call<ProfissionalDetalheResponse> detalhes(@Path("id") String id);` },
-    { m: "post", path: "/v1/profissionais/{id}/horarios-disponiveis", auth: "Público", desc: "Consultar slots livres; data vai no body; padrão 50 min e fuso America/Sao_Paulo (configuráveis por ambiente)",
+    { m: "get", path: "/v1/profissionais/{id}/horarios-disponiveis", auth: "Público", desc: "Recomendado: consultar horários livres com data na query (?data=AAAA-MM-DD); padrão 50 min e fuso America/Sao_Paulo",
+      reqBody: null,
+      resBody: ["2026-10-20T09:00:00", "2026-10-20T09:50:00"],
+      react: `const horarios = await api("/v1/profissionais/" + profissionalId + "/horarios-disponiveis?data=2026-10-20");`,
+      android: `@GET("v1/profissionais/{id}/horarios-disponiveis")
+Call<List<LocalDateTime>> horarios(@Path("id") String id, @Query("data") String data);` },
+    { m: "post", path: "/v1/profissionais/{id}/horarios-disponiveis", auth: "Público", desc: "⚠️ OBSOLETO — continua funcionando por compatibilidade; novos consumidores devem usar GET /v1/profissionais/{id}/horarios-disponiveis com ?data=AAAA-MM-DD",
       reqBody: { data: "2026-10-20" },
       resBody: ["2026-10-20T09:00:00", "2026-10-20T09:50:00"],
       react: `const horarios = await api("/v1/profissionais/" + profissionalId + "/horarios-disponiveis", {

@@ -103,7 +103,11 @@ window.MINDU_ROUTE_ERRORS = {
     { codigo: "404", motivo: "profissional inexistente ou ainda não aprovado", correcao: "confira o id; só perfis aprovados aparecem publicamente" }
   ],
   "POST /v1/profissionais/{id}/horarios-disponiveis": [
-    { codigo: "400", motivo: "data ausente ou formato inválido", correcao: "envie no body a data no formato AAAA-MM-DD" },
+    { codigo: "400", motivo: "data ausente ou formato inválido", correcao: "como alternativa preferencial, use GET /v1/profissionais/{id}/horarios-disponiveis?data=AAAA-MM-DD" },
+    { codigo: "404", motivo: "profissional inexistente ou não aprovado", correcao: "confira o id do profissional aprovado" }
+  ],
+  "GET /v1/profissionais/{id}/horarios-disponiveis": [
+    { codigo: "400", motivo: "data ausente ou formato inválido", correcao: "informe ?data=AAAA-MM-DD na query" },
     { codigo: "404", motivo: "profissional inexistente ou não aprovado", correcao: "confira o id do profissional aprovado" }
   ],
   "GET /v1/profissionais/{id}/foto": [
@@ -146,7 +150,7 @@ window.MINDU_ROUTE_ERRORS = {
     { codigo: "404", motivo: "agendamento não encontrado ou já cancelado", correcao: "confira o id e o status atual" }
   ],
   "PATCH /v1/agendamentos/{id}/horario": [
-    { codigo: "400", motivo: "novo horário fora da agenda, de intervalo incorreto ou agendamento cancelado", correcao: "selecione um horário retornado por POST /v1/profissionais/{id}/horarios-disponiveis" },
+    { codigo: "400", motivo: "novo horário fora da agenda, de intervalo incorreto ou agendamento cancelado", correcao: "selecione um horário retornado por GET /v1/profissionais/{id}/horarios-disponiveis?data=AAAA-MM-DD" },
     { codigo: "409", motivo: "novo horário acabou de ser ocupado", correcao: "consulte novamente os horários livres e escolha outro" },
     { codigo: "403", motivo: "agendamento não pertence à conta autenticada", correcao: "use a conta do cliente ou profissional envolvido" }
   ]

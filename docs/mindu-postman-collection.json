@@ -2,7 +2,7 @@
   "info": {
     "name": "MindU — Backend (roteiro de testes)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Antes de rodar: preencha planoId e adminSenha (aba Variables) e selecione um arquivo no cadastro profissional. Rode as pastas 01 a 06 em ordem. O login retorna token/tipo; use GET /v1/auth/me para id/nome. Login tem limite de 10 tentativas por minuto por IP (429), sem bloqueio por conta."
+    "description": "Antes de rodar: preencha planoId e adminSenha (aba Variables) e selecione um arquivo no cadastro profissional. Rode as pastas 01 a 06 em ordem. O login retorna token/tipo; use GET /v1/auth/me para id/nome. Consulte horários preferencialmente por GET; o POST antigo segue disponível como obsoleto. Login tem limite de 10 tentativas por minuto por IP (429), sem bloqueio por conta."
   },
   "variable": [
     {
@@ -229,7 +229,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Status 201 Created\", () => pm.response.to.have.status(201));",
                   "const j = pm.response.json();",
                   "pm.test(\"5 matrículas\", () => pm.expect(j.length).to.eql(5));",
                   "pm.collectionVariables.set(\"matriculaCodigo\", j[0].codigo);",
@@ -1004,6 +1004,64 @@
                   "language": "json"
                 }
               }
+            }
+          }
+        },
+        {
+          "name": "3.9 [RECOMENDADO] Consultar horários (GET)",
+          "description": "Alternativa preferencial para novos consumidores. A data vai na query no formato AAAA-MM-DD.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Resposta é uma lista\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/profissionais/{{profissionalId}}/horarios-disponiveis?data={{dataAgendamento}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "profissionais", "{{profissionalId}}", "horarios-disponiveis"],
+              "query": [{"key": "data", "value": "{{dataAgendamento}}"}]
+            },
+            "auth": {"type": "noauth"}
+          }
+        },
+        {
+          "name": "3.10 [OBSOLETO] Consultar horários (POST legado)",
+          "description": "Continua funcionando por compatibilidade. Para novos consumidores, use 3.9 GET.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Resposta é uma lista\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "{{baseUrl}}/v1/profissionais/{{profissionalId}}/horarios-disponiveis",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "profissionais", "{{profissionalId}}", "horarios-disponiveis"]
+            },
+            "auth": {"type": "noauth"},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": \"{{dataAgendamento}}\"\n}",
+              "options": {"raw": {"language": "json"}}
             }
           }
         }

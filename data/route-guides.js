@@ -27,7 +27,15 @@ window.MINDU_ROUTE_GUIDES = {
   },
   "POST /v1/agendamentos": {
     summary: "Cliente autenticado escolhe um horário livre e uma modalidade oferecida pelo profissional.",
-    steps: ["Consulte POST /v1/profissionais/{id}/horarios-disponiveis para uma data.", "Selecione um horário retornado e uma modalidade dos locais cadastrados.", "Envie profissionalId, dataHora e modalidade; clienteId é obtido do token.", "Se retornar 409, atualize os horários e escolha outro."]
+    steps: ["Consulte preferencialmente GET /v1/profissionais/{id}/horarios-disponiveis?data=AAAA-MM-DD.", "Selecione um horário retornado e uma modalidade dos locais cadastrados.", "Envie profissionalId, dataHora e modalidade; clienteId é obtido do token.", "Se retornar 409, atualize os horários e escolha outro."]
+  },
+  "GET /v1/profissionais/{id}/horarios-disponiveis": {
+    summary: "Alternativa recomendada para consultar horários livres: envie data como query param no formato AAAA-MM-DD.",
+    steps: ["Use GET /v1/profissionais/{id}/horarios-disponiveis?data=AAAA-MM-DD.", "A resposta é uma lista de horários locais disponíveis.", "Esta é a rota preferencial para novos consumidores."]
+  },
+  "POST /v1/profissionais/{id}/horarios-disponiveis": {
+    summary: "OBSOLETO: continua funcionando por compatibilidade, mas não é recomendado para novos consumidores. Prefira GET /v1/profissionais/{id}/horarios-disponiveis?data=AAAA-MM-DD.",
+    steps: ["A data continua sendo enviada no body como { data: \"AAAA-MM-DD\" }.", "A rota não será removida nesta versão.", "Para novos projetos, utilize a alternativa GET com a data na query."]
   },
   "GET /v1/agendamentos/meus": {
     summary: "Lista os agendamentos da conta cliente. Use ?data=AAAA-MM para filtrar um mês."
