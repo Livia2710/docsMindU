@@ -13,6 +13,14 @@ window.MINDU_ROUTE_ERRORS = {
   "GET /v1/auth/me": [
     { codigo: "401", motivo: "token ausente, inválido ou expirado", correcao: "faça login novamente em POST /v1/auth/login e envie o token Bearer" }
   ],
+  "POST /v1/auth/esqueci-senha": [
+    { codigo: "400", motivo: "e-mail ausente ou inválido", correcao: "envie um endereço de e-mail válido no JSON" },
+    { codigo: "429", motivo: "limite de requisições por IP excedido", correcao: "aguarde Retry-After antes de tentar novamente" }
+  ],
+  "POST /v1/auth/redefinir-senha": [
+    { codigo: "400", motivo: "token inválido, expirado ou já utilizado; ou nova senha inválida", correcao: "peça um novo link e envie senha com pelo menos 8 caracteres" },
+    { codigo: "429", motivo: "limite de requisições por IP excedido", correcao: "aguarde Retry-After antes de tentar novamente" }
+  ],
   "PUT /v1/auth/senha": [
     { codigo: "400", motivo: "senha atual incorreta ou nova senha menor que 8 caracteres", correcao: "confira a senha atual e envie uma nova senha com pelo menos 8 caracteres" }
   ],

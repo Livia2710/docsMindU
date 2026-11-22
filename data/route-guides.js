@@ -13,6 +13,40 @@ window.MINDU_ROUTE_GUIDES = {
     summary: "Esta chamada completa o login no front: retorna id, nome, email e tipo da conta autenticada.",
     steps: ["Leia o token salvo após o login.", "Envie Authorization: Bearer <token>.", "Use o tipo para abrir a área Cliente, Empresa, Profissional ou Admin."]
   },
+  "POST /v1/auth/esqueci-senha": {
+    summary: "Inicia a recuperação sem revelar se o e-mail está cadastrado. O link chega no e-mail da conta ativa e vale por 15 minutos.",
+    steps: [
+      "Envie POST /v1/auth/esqueci-senha com JSON { email }. Não é necessário enviar JWT.",
+      "Mostre a mesma mensagem genérica retornada pela API para qualquer e-mail válido. Não informe se a conta existe.",
+      "Se a conta ativa existir, a pessoa recebe por e-mail um link baseado em MINDU_RESET_PASSWORD_URL com o token na query string.",
+      "A tela do front deve ler o parâmetro token e pedir uma nova senha; envie o token no corpo de POST /v1/auth/redefinir-senha.",
+      "Se o e-mail não chegar, confira a pasta de spam e as credenciais SMTP no ambiente da API. A resposta genérica não confirma entrega."
+    ],
+    notes: [
+      "O e-mail é normalizado com trim e minúsculas. A API não retorna token na resposta nem registra o token em logs.",
+      "O e-mail é enfileirado após o commit e enviado em segundo plano. Se o SMTP falhar, a API mantém a mesma resposta genérica, registra somente o tipo da falha no servidor e invalida o link que não foi entregue.",
+      "O token é aleatório, tem uso único, expira em 15 minutos e somente seu hash SHA-256 fica no banco. Uma nova solicitação invalida links anteriores ainda pendentes.",
+      "Esse endpoint compartilha o limite existente: 10 chamadas por minuto por IP; excesso retorna 429 e Retry-After.",
+      "A tela do front deve remover o token da barra de endereço depois de lê-lo e evitar registrar a URL ou enviá-la como Referer.",
+      "Para testes locais, use uma conta e uma caixa de e-mail controladas. SMTP real envia mensagem; os testes automatizados usam mock. O plano gratuito do Render bloqueia as portas SMTP comuns, então a Brevo configurada localmente não envia por esse caminho na hospedagem gratuita."
+    ]
+  },
+  "POST /v1/auth/redefinir-senha": {
+    summary: "Consome o token recebido no link por e-mail e troca a senha. O sucesso não retorna corpo (204).",
+    steps: [
+      "A tela de redefinição lê o token do parâmetro token no link recebido por e-mail.",
+      "Peça e valide a nova senha no front; a regra atual da API exige pelo menos 8 caracteres.",
+      "Envie POST /v1/auth/redefinir-senha com JSON { token, novaSenha }; não envie a senha na URL.",
+      "Com 204, informe que a senha foi alterada e encaminhe a pessoa para o login.",
+      "Com 400, o link expirou, já foi usado, foi invalidado ou a senha não passou na validação. Solicite um novo link quando necessário."
+    ],
+    notes: [
+      "A alteração de senha e o consumo do token são transacionais; o banco bloqueia o token durante o uso para impedir duas redefinições concorrentes.",
+      "Depois do sucesso, o token é marcado como usado, os outros links pendentes da conta são invalidados e a versão do usuário aumenta. JWTs anteriores deixam de autenticar; a pessoa precisa fazer login novamente.",
+      "O token expira em 15 minutos, é de uso único e apenas seu hash fica persistido. Respostas de erro não incluem detalhes SMTP.",
+      "A rota é pública e também compartilha o limite de 10 chamadas por minuto por IP; excesso retorna 429 com Retry-After."
+    ]
+  },
   "POST /v1/clientes": {
     summary: "O cadastro precisa do ID da empresa e de uma matrícula disponível. Valide o código antes de enviar o cadastro.",
     steps: ["Chame GET /v1/empresas/validar-matricula?codigo=... usando o código digitado.", "Guarde empresaId da resposta e mostre nomeFantasia.", "Envie nome, email, senha, empresaId e matricula para esta rota.", "Depois do cadastro, aguarde a aprovação da empresa."]

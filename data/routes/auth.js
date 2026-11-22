@@ -32,6 +32,36 @@ api.login(new LoginRequest(email, senha)).enqueue(new Callback<>() {
         });
     }
 });` },
+    { m: "post", path: "/v1/auth/esqueci-senha", auth: "Público", desc: "Solicitar link de recuperação. A resposta é igual para e-mails existentes e inexistentes; conta ativa recebe link de uso único válido por 15 minutos.",
+      reqBody: { email: "usuario@email.com" },
+      resBody: { mensagem: "Se o e-mail estiver cadastrado, enviaremos um link para redefinir sua senha." },
+      react: `const resposta = await api("/v1/auth/esqueci-senha", {
+  method: "POST",
+  body: { email }
+});
+// Sempre mostre a mensagem genérica da API; ela não confirma se a conta existe.
+setMensagem(resposta.mensagem);`,
+      android: `@POST("v1/auth/esqueci-senha")
+Call<MensagemResponse> solicitarRecuperacao(@Body SolicitarRecuperacaoRequest body);
+
+// MensagemResponse contém o campo String mensagem.
+api.solicitarRecuperacao(new SolicitarRecuperacaoRequest(email)).enqueue(callback);` },
+    { m: "post", path: "/v1/auth/redefinir-senha", auth: "Público", desc: "Definir nova senha usando o token recebido no link por e-mail; sucesso retorna 204 No Content.",
+      reqBody: { token: "token-recebido-no-link", novaSenha: "NovaSenha123!" },
+      resBody: null,
+      react: `const token = new URLSearchParams(window.location.search).get("token");
+if (!token) throw new Error("Link de recuperação inválido");
+
+await api("/v1/auth/redefinir-senha", {
+  method: "POST",
+  body: { token, novaSenha }
+});
+// A resposta é 204; depois do sucesso, encaminhe para o login.`,
+      android: `@POST("v1/auth/redefinir-senha")
+Call<Void> redefinirSenha(@Body RedefinirSenhaRequest body);
+
+// Extraia "token" do link/deep link e envie junto com a nova senha.
+api.redefinirSenha(new RedefinirSenhaRequest(token, novaSenha)).enqueue(callback);` },
     { m: "get", path: "/v1/auth/me", auth: "Autenticado", desc: "Obter sua conta e tipo pelo token; não envie seu próprio ID na URL",
       reqBody: null,
       resBody: { id: "<uuid>", nome: "Maria Silva", email: "maria@email.com", tipo: "CLIENTE", status: "APROVADO" },
