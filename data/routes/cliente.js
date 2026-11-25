@@ -2,7 +2,7 @@ window.MINDU_ROUTE_GROUPS = window.MINDU_ROUTE_GROUPS || [];
 window.MINDU_ROUTE_GROUPS.push(
 { id: "cliente", nome: "Cliente", rotas: [
     { m: "post", path: "/v1/clientes", auth: "Público", desc: "Cadastro — etapa 1 (com matrícula)",
-      reqBody: { nome: "Maria Silva", email: "maria@email.com", senha: "Senha@1234", empresaId: "<uuid>", matricula: "A1B2C3" },
+      reqBody: { nome: "Maria Silva", email: "maria@email.com", senha: "<SENHA_DE_TESTE>", empresaId: "<uuid>", matricula: "A1B2C3" },
       resBody: { id: "<uuid>", empresaId: "<uuid>", status: "AGUARDANDO_APROVACAO", ativo: true, dataCadastro: "2026-11-15T10:30:00" },
       react: `await api("/v1/clientes", { method: "POST", body: dadosCliente });`,
       android: `@POST("v1/clientes")

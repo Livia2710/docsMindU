@@ -2,7 +2,7 @@ window.MINDU_ROUTE_GROUPS = window.MINDU_ROUTE_GROUPS || [];
 window.MINDU_ROUTE_GROUPS.push(
 { id: "empresa", nome: "Empresa", rotas: [
     { m: "post", path: "/v1/empresas", auth: "Público", desc: "Cadastrar empresa",
-      reqBody: { razaoSocial: "Acme Ltda", nomeFantasia: "Acme", inscricaoEstadual: "123456789", cnpj: "00000000000191", responsavel: "Ana Souza", cep: "01001000", logradouro: "Praça da Sé", numero: "100", complemento: "Sala 1", bairro: "Sé", cidade: "São Paulo", estado: "SP", email: "acme@empresa.com", telefone: "11999990000", senha: "Senha@1234", planoId: "<uuid do plano>" },
+      reqBody: { razaoSocial: "Acme Ltda", nomeFantasia: "Acme", inscricaoEstadual: "123456789", cnpj: "00000000000191", responsavel: "Ana Souza", cep: "01001000", logradouro: "Praça da Sé", numero: "100", complemento: "Sala 1", bairro: "Sé", cidade: "São Paulo", estado: "SP", email: "acme@empresa.com", telefone: "11999990000", senha: "<SENHA_DE_TESTE>", planoId: "<uuid do plano>" },
       resBody: { id: "<uuid>", razaoSocial: "Acme Ltda", plano: "Start" },
       react: `await api("/v1/empresas", { method: "POST", body: dadosEmpresa });`,
       android: `@POST("v1/empresas")

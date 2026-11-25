@@ -21,21 +21,17 @@
 </style>
 </head>
 <body>
-  <div class="topbar">
-    <h1>MindU · API</h1>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark">M</span><span>MindU <small>API</small></span></a>
+    <nav class="topbar-nav" aria-label="Navegação principal"><a href="index.html">Rotas</a><a href="docs/api-inventario.html">Acompanhamento</a></nav>
     <div class="spacer"></div>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
-    <div class="dl">
-      <a href="index.html">← Documentação das rotas</a>
-      <a href="integracao-mila.html">Guia: integrar a Mila</a>
-      <a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a>
-    </div>
-  </div>
+    <div class="topbar-actions"><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button><details class="topbar-more"><summary>Mais</summary><div class="topbar-menu-panel"><a href="docs/api-inventario.html">Acompanhamento</a><a href="integracao-mila.html">Guia da Mila</a><a href="docs/api-referencia-rotas.html">Auditoria técnica</a><a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a></div></details></div>
+  </header>
 
   <main class="tutorial-shell">
     <p class="tutorial-eyebrow">Guia de desenvolvimento</p>
     <h2 class="tutorial-title">Rodar a API localmente</h2>
-    <p class="tutorial-lead">O Docker inicia o backend Spring Boot, o PostgreSQL e o serviço interno da Mila no computador de cada pessoa. Sabrina e Manoela acessam o chat pela API Java; cada uma conecta seu próprio front-end a ela.</p>
+    <p class="tutorial-lead">O Docker inicia o backend Spring Boot e o PostgreSQL. A Mila é um serviço separado e opcional, ativado pelo profile `mila`. O app e o site chamam a API Java.</p>
 
     <div class="profile-filter">
       <p class="profile-filter-label">Mostrar instruções de:</p>
@@ -50,7 +46,7 @@
 
     <div class="tutorial-callout">
       <strong>O que fica local?</strong>
-      <p>A API responde em <code>http://localhost:8080</code> no computador que roda o Docker. O banco local é separado do banco do Render: os dados de produção não são copiados.</p>
+      <p>A API local responde em <code>http://localhost:8080</code> no computador do Docker, ou em <code>http://10.0.2.2:8080</code> no emulador. O deploy hospedado no Render está indisponível no momento; configure outra URL Web ativa se necessário.</p>
     </div>
 
     <section class="tutorial-section">
@@ -67,7 +63,7 @@
 
     <section class="tutorial-section">
       <h3>2. Clonar e iniciar a API e o banco</h3>
-      <p>Vamos configurar o computador para que o Docker consiga construir os três serviços necessários: PostgreSQL, API Java e API interna da Mila. A interface do site e o app Android chamam somente o Java.</p>
+      <p>O Compose inicia PostgreSQL e API Java. A API Mila pode ser ligada à parte pelo profile correspondente.</p>
 
       <h4>2.1 Abrir o Prompt de Comando</h4>
       <ol>
@@ -124,8 +120,8 @@ MILA_API_KEY=COLE_A_CHAVE_INTERNA_GERADA</code></pre>
 
       <h4>2.6 Construir e iniciar Java, banco e Mila</h4>
       <p>Volte a confirmar que o CMD está dentro da pasta <code>javaMindU</code>. Agora execute:</p>
-      <pre data-label="CMD · iniciar os serviços locais"><code>docker compose -f docker-compose.local.yml up --build -d api db mila</code></pre>
-      <p>Na primeira vez pode demorar: o Docker baixa dependências, prepara os documentos da base de conhecimento e constrói os serviços. O parâmetro <code>-d</code> deixa os serviços em segundo plano. Quando terminar, o Java estará em <code>http://localhost:8080</code>; a Mila é interna e o front não chama sua porta diretamente. Se aparecer erro dizendo que <code>GROQ_API_KEY</code> está vazia/ausente, volte ao arquivo <code>Mila\.env</code>, preencha essa chave e rode o comando novamente.</p>
+      <pre data-label="CMD · iniciar backend e banco"><code>docker compose -f docker-compose.local.yml up --build</code></pre>
+      <p>O comando acima recria os serviços padrão. Para habilitar a Mila, configure suas variáveis e rode <code>docker compose -f docker-compose.local.yml --profile mila up --build api db mila</code>. Quando terminar, o Java estará em <code>http://localhost:8080</code>; o front nunca chama a porta interna da Mila diretamente.</p>
       <p>Para conferir se os três serviços iniciaram, execute:</p>
       <pre data-label="CMD · conferir os containers"><code>docker compose -f docker-compose.local.yml ps</code></pre>
       <p>Para ver os logs enquanto investigam um erro, execute:</p>
@@ -225,7 +221,7 @@ adicionarMensagemMila(resultado.response);</code></pre>
       <ul>
         <li><strong>Docker não inicia:</strong> abra o Docker Desktop, aguarde ficar pronto e confira se o WSL 2 foi habilitado quando solicitado.</li>
         <li><strong>Porta 8080 ocupada:</strong> feche o outro serviço que a utiliza antes de iniciar o Compose.</li>
-        <li data-profile-panel="sabrina"><strong>React continua chamando Render:</strong> confira o valor em <code>.env.local</code> e reinicie <code>npm run dev</code>.</li>
+        <li data-profile-panel="sabrina"><strong>Web não conecta:</strong> o Render está indisponível; configure no seletor Web uma URL base ativa ou use Local.</li>
         <li data-profile-panel="manoela" hidden><strong>Android não conecta usando localhost:</strong> no emulador, use <code>10.0.2.2</code> para alcançar a máquina anfitriã.</li>
         <li data-profile-panel="manoela" hidden><strong>Android informa que HTTP sem criptografia não é permitido:</strong> libere HTTP somente para debug/desenvolvimento.</li>
         <li><strong>Precisa conferir os logs:</strong> no cmd.exe, execute <code>docker compose -f docker-compose.local.yml logs -f api</code>.</li>
@@ -233,6 +229,31 @@ adicionarMensagemMila(resultado.response);</code></pre>
     </section>
 
     <p class="tutorial-footnote">Para usar o chat local, ambas precisam ter acesso ao repositório da API Java e ao repositório separado da Mila. O Compose monta a imagem da Mila a partir do código local em cada computador.</p>
+    <section class="tutorial-section">
+      <h3>Como usar a API: autenticação, validações e fluxos</h3>
+      <p>URL local no navegador/Postman: <code>http://localhost:8080</code>. Emulador Android: <code>http://10.0.2.2:8080</code>. Hospedagem Render: indisponível no momento. O site permite configurar outra URL Web. JSON usa <code>Content-Type: application/json</code>; rotas privadas usam <code>Authorization: Bearer &lt;JWT&gt;</code>.</p>
+      <p>Faça login em <code>POST /v1/auth/login</code>, guarde o campo <code>token</code> em armazenamento seguro e consulte <code>GET /v1/auth/me</code>. O JWT dura 1 hora e não há refresh token; ao receber 401, descarte-o e peça novo login. A API não devolve token em erros.</p>
+      <p>Formato de erro usual: <code>{"erro":"Erro de validação","campos":{"email":"Formato inválido"},"status":400}</code>; <code>campos</code> pode não existir. Códigos: 400 entrada inválida, 401 autenticação, 403 permissão, 404 recurso ausente, 409 conflito, 422 validação rejeitada pela Mila (a integração pode retornar 502), 429 limite de login com <code>Retry-After</code>. Upload acima do limite retorna 413.</p>
+      <p>Enums do backend: <code>Genero</code> MASCULINO, FEMININO, NAO_BINARIO, AGENERO, OUTRO, PREFIRO_NAO_DIZER; <code>TipoProfissional</code> PSICOLOGO, PSIQUIATRA, TERAPEUTA; <code>StatusVerificacao</code> PENDENTE/APROVADO/REJEITADO; <code>StatusCadastroCliente</code> AGUARDANDO_APROVACAO/APROVADO/REJEITADO; <code>StatusAgendamento</code> AGENDADO/CANCELADO/REALIZADO; <code>Modalidade</code> PRESENCIAL/VIRTUAL/HIBRIDO; dias SEGUNDA a DOMINGO; exclusão PENDENTE/EM_ANALISE/CONCLUIDA/RECUSADA.</p>
+      <p><strong>Campos validados nos DTOs:</strong> login exige <code>email</code> e <code>senha</code>; recuperação exige email, redefinição exige token e nova senha (mínimo 8 caracteres). Cadastro Cliente exige nome, email válido, senha com mínimo 8, <code>empresaId</code> e matrícula; dados sensíveis exigem CNS, data de nascimento, nome da mãe e gênero. Cadastro Empresa exige razão social, nome fantasia, CNPJ, responsável, endereço (CEP/logradouro/bairro/cidade/estado), email, senha (mínimo 8) e <code>planoId</code>; inscrição estadual, número, complemento e telefone são opcionais. Cadastro Profissional é multipart: nome, email, senha e <code>fotoCarteirinha</code> obrigatórios; tipo e tags opcionais.</p>
+      <p>Perfil Cliente/Empresa/Profissional aceita os campos de perfil individualmente opcionais; email, quando enviado, precisa ser válido. Perfil do profissional usa tipo enum e tags. Local de atendimento exige modalidade; se não for VIRTUAL, também CEP, logradouro e cidade. Disponibilidade recebe lista com dia, <code>horaInicio</code> e <code>horaFim</code>, fim posterior ao início e intervalos sem sobreposição; PUT substitui a lista inteira. Agendamento exige <code>profissionalId</code>, <code>dataHora</code> local e modalidade; Admin também informa <code>clienteId</code>. Reagendamento exige dataHora; link online exige URL HTTPS até 2.048 caracteres; contrato exige início e diaPagamento de 1 a 28 (fim opcional); atualização de solicitação exige status enum.</p>
+      <p>Imagens de carteirinha profissional: multipart PNG/JPEG/JPG, no máximo 5 MB e 12 megapixels. Outros limites gerais de multipart no Spring são 10 MB por arquivo e 12 MB por requisição. Admin listagens suportam <code>page</code> (inicia em 0), <code>size</code> de 1–100 e headers <code>X-Total-Count</code>, <code>X-Page</code>, <code>X-Page-Size</code>, <code>X-Total-Pages</code>. Filtros documentados estão junto às rotas.</p>
+      <ul><li><strong>Cliente:</strong> GET planos/validar matrícula → POST cadastro vinculando Empresa e matrícula → aguardar aprovação da Empresa → login → GET /me → completar dados sensíveis → pesquisar profissional → consultar horários por GET → POST agendamento.</li><li><strong>Empresa:</strong> GET planos → POST cadastro → aguardar aprovação Admin → login → GET /me → gerar matrícula(s) → aprovar clientes → consultar dashboard/listagens.</li><li><strong>Profissional:</strong> POST cadastro multipart com carteirinha → aguardar Admin → login → GET /me → configurar perfil, locais e disponibilidade → consultar agenda → atualizar estado/link.</li><li><strong>Admin:</strong> login → GET /me → listar pendentes e aprovar Empresa/Profissional/Cliente → gerir contrato, agendamentos e solicitações de exclusão.</li></ul>
+      <p>Seeds administrativos locais: livia@mindu.local, sabrina@mindu.local, manuela@mindu.local e tinin@mindu.local. A senha vem apenas de <code>MINDU_ADMIN_SENHA</code> local; não publique nem registre seu valor.</p>
+      <h4>Exemplo curl autenticado</h4><pre><code>curl -i http://localhost:8080/v1/auth/me -H "Authorization: Bearer TOKEN_JWT"</code></pre>
+      <h4>React: Bearer, 401 e 429</h4><pre><code>async function api(path, options = {}) {
+  const token = sessionStorage.getItem("token");
+  const response = await fetch(BASE_URL + path, { ...options,
+    headers: { ...(options.body instanceof FormData ? {} : {"Content-Type":"application/json"}),
+      ...(token ? {Authorization:`Bearer ${token}`} : {}), ...options.headers },
+    body: options.body instanceof FormData ? options.body : (options.body ? JSON.stringify(options.body) : undefined)
+  });
+  if (response.status === 401) { sessionStorage.removeItem("token"); location.assign("/login"); }
+  if (response.status === 429) throw new Error(`Tente novamente em ${response.headers.get("Retry-After") || "alguns"} segundos`);
+  return response;
+}</code></pre>
+      <p>Use <code>FormData</code> nas rotas multipart sem definir manualmente <code>Content-Type</code>, para que o navegador crie o boundary.</p>
+    </section>
   </main>
 
   <footer>MindU — tutorial para executar a API localmente em ambiente de desenvolvimento.</footer>

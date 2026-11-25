@@ -2,7 +2,7 @@ window.MINDU_ROUTE_GROUPS = window.MINDU_ROUTE_GROUPS || [];
 window.MINDU_ROUTE_GROUPS.push(
 { id: "profissional", nome: "Profissional", rotas: [
     { m: "post", path: "/v1/profissionais", auth: "Público", desc: "Cadastro — multipart/form-data (campos soltos + foto)", isForm: true,
-      reqBody: { nome: "João Lima", email: "joao@mindu.com", senha: "Senha@1234", tipo: "(opcional)", tags: "(opcional)", fotoCarteirinha: "(opcional)" },
+      reqBody: { nome: "João Lima", email: "joao@mindu.com", senha: "<SENHA_DE_TESTE>", tipo: "(opcional)", tags: "(opcional)", fotoCarteirinha: "(obrigatório)" },
       resBody: { id: "<uuid>", status: "PENDENTE" },
       react: `const form = new FormData();
 form.append("nome", nome);
@@ -112,6 +112,7 @@ Call<ResponseBody> foto(@Path("id") String id);` },
       resBody: "Imagem PNG em bytes (resposta binária, não é JSON)",
       react: `const bannerUrl = BASE_URL + "/v1/profissionais/" + profissionalId + "/banner";`,
       android: `@GET("v1/profissionais/{id}/banner")
-Call<ResponseBody> banner(@Path("id") String id);` }
+Call<ResponseBody> banner(@Path("id") String id);` },
+    { m: "patch", path: "/v1/profissionais/{id}/carteirinha", auth: "Profissional", desc: "Reenviar carteirinha após rejeição; multipart PNG/JPEG/JPG até 5 MB e 12 MP.", reqBody: "multipart/form-data: fotoCarteirinha (arquivo obrigatório)", resBody: { id: "<uuid>", status: "PENDENTE" }, react: `const form = new FormData(); form.append("fotoCarteirinha", arquivo); await api("/v1/profissionais/" + id + "/carteirinha", { method: "PATCH", body: form });`, android: `@Multipart @PATCH("v1/profissionais/{id}/carteirinha")\nCall<ProfissionalResponse> reenviarCarteirinha(@Path("id") String id, @Part MultipartBody.Part fotoCarteirinha);` }
   ]}
 );
