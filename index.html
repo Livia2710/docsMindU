@@ -16,6 +16,7 @@
 <script src="data/routes/admin.js" defer></script>
 <script src="data/routes/chat.js" defer></script>
 <script src="data/routes/agendamento.js" defer></script>
+<script src="data/routes/conta.js" defer></script>
 <script src="data/route-errors.js" defer></script>
 <script src="data/route-guides.js" defer></script>
 <script src="data/field-help.js" defer></script>
@@ -23,22 +24,31 @@
 </head>
 <body>
 
-  <div class="topbar">
-    <h1>MindU · API</h1>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark">M</span><span>MindU <small>API</small></span></a>
+    <nav class="topbar-nav" aria-label="Navegação principal">
+      <a class="active" href="index.html" aria-current="page">Rotas</a>
+      <a href="docs/api-inventario.html">Acompanhamento</a>
+    </nav>
     <div class="spacer"></div>
-    <div class="env-toggle" role="group" aria-label="Ambiente">
-      <button id="env-local" class="active" data-env="local">Local</button>
-      <button id="env-web" data-env="web">Web</button>
+    <div class="topbar-actions">
+      <div class="env-toggle" role="group" aria-label="Ambiente">
+        <button id="env-local" class="active" data-env="local">Local</button>
+        <button id="env-web" data-env="web">Web</button>
+      </div>
+      <details class="web-url-config"><summary>URL</summary><input id="web-base-url" type="url" placeholder="https://api.exemplo.test" aria-label="URL base do ambiente Web"></details>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
+      <details class="topbar-more"><summary>Mais</summary><div class="topbar-menu-panel">
+        <a href="docs/api-inventario.html">Acompanhamento</a>
+        <a href="tutorial.html">Tutorial: API local</a>
+        <a href="integracao-mila.html">Guia: integrar a Mila</a>
+        <a href="docs/api-referencia-rotas.html">Auditoria técnica das rotas</a>
+        <a href="docs/mindu-modelagem.html" download>↓ Artefato de modelagem</a>
+        <a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a>
+        <a id="req-route" href="#" target="_blank" rel="noopener">＋ Pedir nova rota</a>
+      </div></details>
     </div>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
-    <div class="dl">
-      <a href="tutorial.html">Tutorial: API local</a>
-      <a href="integracao-mila.html">Guia: integrar a Mila</a>
-      <a href="docs/mindu-modelagem.html" download>↓ Artefato de modelagem</a>
-      <a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a>
-      <a id="req-route" href="#" target="_blank" rel="noopener">＋ Pedir nova rota</a>
-    </div>
-  </div>
+  </header>
 
   <div class="layout">
     <nav class="side" id="sidenav"></nav>
@@ -48,7 +58,7 @@
         <h2>Como usar esta página</h2>
         <p>Clique em uma rota para ver um resumo. O botão <strong>Abrir guia detalhado</strong> leva a uma página própria com pré-requisitos, passos, campos, autenticação, respostas, erros comuns e exemplos para React e Android. Use o seletor <strong>Local / Web</strong> no topo para trocar o endereço em todos os exemplos.</p>
         <p><strong>Local:</strong> <code>http://localhost:8080</code> — precisa do backend rodando no computador (copie <code>.env.example</code> para <code>.env</code> e execute <code>docker compose -f docker-compose.local.yml up --build</code>; veja o <a href="tutorial.html">tutorial</a>).<br>
-        <strong>Web:</strong> <code id="web-url-display">https://mindu-api.onrender.com</code> — o Render pode entrar em cold start; a primeira requisição após inatividade pode levar aproximadamente 1 minuto.</p>
+        <strong>Web:</strong> <code id="web-url-display">URL configurável</code> — <span class="status-unavailable">indisponível no momento</span>; o deploy no Render está fora do ar. Configure uma URL ativa antes de usar.</p>
         <p>Toda rota, exceto as marcadas <span class="auth-pill">público</span>, exige o cabeçalho <code>Authorization: Bearer &lt;token&gt;</code>, obtido no login. Erros, inclusive 401 (não autenticado) e 403 (sem permissão), retornam JSON com <code>erro</code>, por exemplo <code>{"erro":"Não autenticado ou token inválido/expirado","status":401}</code>. Validações incluem <code>campos</code>, por exemplo <code>{"erro":"Erro de validação","campos":{"email":"Formato inválido"},"status":400}</code>.<br>
         Status documentados: <code>400</code> validação/requisição, <code>401</code> autenticação, <code>403</code> autorização, <code>404</code> não encontrado, <code>409</code> conflito, <code>413</code> upload grande, <code>429</code> limite de login (header <code>Retry-After</code>) e <code>502</code> integração indisponível.</p>
       <p><strong>Importante sobre o login:</strong> <code>POST /v1/auth/login</code> normaliza o e-mail com trim e minúsculas, portanto maiúsculas/minúsculas não fazem diferença. Retorna apenas <code>token</code> e <code>tipo</code>; o JWT expira em 1 hora e não há refresh token. Depois de salvar o token, chame <code>GET /v1/auth/me</code> para receber <code>id</code>, <code>nome</code> e <code>email</code>. Use rotas <code>/me</code> quando disponíveis. Limite padrão: 10 tentativas de login por minuto por IP; excedê-lo retorna 429 com <code>Retry-After</code>, header exposto via CORS para leitura no JavaScript. Para sair ou ao receber 401, apague o token e redirecione para o login.</p>
@@ -108,39 +118,31 @@ export async function carregarPaginaProfissionais() {
 }</code></pre>
         </div>
         <div class="panel" data-panel="android">
-          <p class="setup-note">Adicione ao <code>build.gradle</code> (module: app):</p>
-          <pre><code>implementation("com.squareup.retrofit2:retrofit:2.11.0")
-implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-// Use androidx.security:security-crypto para EncryptedSharedPreferences</code></pre>
-      <p class="setup-note setup-note-spaced"><code>RetrofitClient.java</code> — monta o cliente e injeta o token salvo:</p>
+          <p class="setup-note">O projeto já configura Retrofit/OkHttp em <code>RetrofitClient.java</code>. Use esta referência sem alterar versões do build:</p>
+      <p class="setup-note setup-note-spaced">O interceptor atual anexa Bearer via <code>SessionManager</code>, encerra sessão em 401 e respeita <code>Retry-After</code> em 429:</p>
       <pre><code>public class RetrofitClient {
-    private static final String BASE_URL = "<span class="baseurl">http://10.0.2.2:8080</span>/"; // emulador -> localhost da máquina
+    private static final String BASE_URL = "<span class="baseurl">http://10.0.2.2:8080</span>/";
     private static Retrofit retrofit;
-
-    public static SharedPreferences getSecurePreferences(Context context) {
-        try {
-            MasterKey key = new MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build();
-            return EncryptedSharedPreferences.create("mindu_secure", key, context,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
-        } catch (Exception e) { throw new IllegalStateException("Não foi possível abrir o armazenamento seguro", e); }
-    }
 
     public static Retrofit getInstance(Context context) {
         if (retrofit == null) {
+            Context appContext = context.getApplicationContext();
             OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(chain -> {
-                    SharedPreferences securePrefs = getSecurePreferences(context);
-                    String token = securePrefs.getString("token", null);
+                    String token = SessionManager.getToken(appContext);
                     Request.Builder b = chain.request().newBuilder();
                     if (token != null) b.addHeader("Authorization", "Bearer " + token);
                     Response response = chain.proceed(b.build());
-                    if (response.code() == 401) securePrefs.edit().remove("token").apply();
-                    // A camada de tela redireciona ao login no 401; no 403, informa falta de permissão.
+                    if (response.code() == 401 && !SessionManager.isValidatingLogin(appContext)) {
+                        new Handler(Looper.getMainLooper()).post(() -> SessionManager.expireSession(appContext));
+                    } else if (response.code() == 429) {
+                        String retry = response.header("Retry-After");
+                        String aviso = retry == null ? "Tente novamente mais tarde" : "Tente novamente em " + retry + " segundos";
+                        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(appContext, aviso, Toast.LENGTH_LONG).show());
+                    }
                     return response;
                 })
-                .addInterceptor(new HttpLoggingInterceptor().setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BASIC : HttpLoggingInterceptor.Level.NONE))
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.NONE))
                 .build();
 
             retrofit = new Retrofit.Builder()
@@ -152,8 +154,8 @@ implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
         return retrofit;
     }
 }</code></pre>
-          <p class="setup-note setup-note-compact">No emulador Android, use a base URL <code>http://10.0.2.2:8080/</code>; <code>localhost</code> aponta para o próprio emulador. Android 9 ou posterior costuma bloquear HTTP sem TLS: configure um network security config no app para liberar HTTP somente para <code>10.0.2.2</code> e apenas no build de debug. Essa configuração pertence ao repositório Android, não a esta API. Em produção use HTTPS (<code>https://mindu-api.onrender.com</code>).</p>
-          <p class="setup-note setup-note-spaced">Guarde o JWT em <code>EncryptedSharedPreferences</code>; ele expira em 1 hora e não há refresh token. Ao receber 401, remova o token e encaminhe a pessoa ao login; no 403, mantenha a sessão e informe que o recurso não é permitido. Cada rota abaixo mostra só o método da interface <code>ApiService</code> e a chamada — adicione o método correspondente à sua interface conforme for implementando.</p>
+          <p class="setup-note setup-note-compact">No emulador Android, use a base URL <code>http://10.0.2.2:8080/</code>; <code>localhost</code> aponta para o próprio emulador. Android 9 ou posterior costuma bloquear HTTP sem TLS: configure um network security config no app para liberar HTTP somente para <code>10.0.2.2</code> e apenas no build de debug. Essa configuração pertence ao repositório Android, não a esta API. Hospedagem: URL HTTPS configurável; Render indisponível no momento.</p>
+          <p class="setup-note setup-note-spaced">O interceptor real redige o header <code>Authorization</code> e suprime logs de corpo no chat e em dados sensíveis. O JWT dura 1 hora, sem refresh; em 401, a sessão expira. Em 429, as telas usam o header <code>Retry-After</code> (login e chat têm tratamento próprio); 403 mantém a sessão e indica permissão insuficiente. Os trechos das rotas abaixo correspondem à interface Retrofit <code>ApiService</code>.</p>
         </div>
       </div>
 

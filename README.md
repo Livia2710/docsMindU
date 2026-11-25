@@ -10,7 +10,7 @@ Cada rota mostra o método, o caminho, quem pode chamar (público, cliente, empr
 |---|---|
 | **Documentação publicada (GitHub Pages)** | [Link da Documentação](https://docsmindu.vercel.app/) |
 | **Repositório da API (backend)** | [Link do Repositório](https://github.com/Livia2710/javaMindU.git) |
-| **API em produção (Web)** | https://mindu-api.onrender.com |
+| **API hospedada (Web)** | Indisponível no momento; URL configurável pelo seletor no site. |
 | **Tutorial para rodar a API localmente** | [Tutorial](tutorial.html) |
 
 
@@ -28,9 +28,9 @@ Cada rota mostra o método, o caminho, quem pode chamar (público, cliente, empr
 | Ambiente | Endereço | Observação |
 |---|---|---|
 | Local | `http://localhost:8080` | Precisa do backend rodando (`docker compose -f docker-compose.local.yml up`). No emulador Android, use `http://10.0.2.2:8080`. |
-| Web | `https://mindu-api.onrender.com` | Sempre disponível, mas a primeira chamada do dia pode levar até 1 minuto, porque o serviço "dorme" quando fica sem uso. |
+| Web | URL informada no campo “URL Web” do site | O deploy no Render está fora do ar no momento. Não use como ambiente funcional até configurar um host ativo. |
 
-Toda rota, exceto as marcadas como **Público**, exige o cabeçalho `Authorization: Bearer <token>`, obtido no login.
+Toda rota, exceto as marcadas como **Público**, exige o cabeçalho `Authorization: Bearer <token>`, obtido no login. O JWT expira em 1 hora e não há refresh token. Consulte o [quadro de acompanhamento](docs/api-inventario.html), a [auditoria técnica completa](docs/api-referencia-rotas.html), o [guia passo a passo](tutorial.html), o [guia Android](README-Android.md) e o [guia Mila](README-Mila.md).
 
 ## Como pedir uma nova rota ou reportar um problema
 
@@ -58,15 +58,22 @@ As Issues servem também como lista do que ainda precisa ser implementado na API
 │   │   ├── profissional.js
 │   │   ├── admin.js
 │   │   ├── chat.js
-│   │   └── agendamento.js
+│   │   ├── agendamento.js
+│   │   └── conta.js
 │   ├── route-errors.js             # erros comuns por rota
 │   ├── route-guides.js             # guias de uso por rota
 │   └── field-help.js               # explicações dos campos
 ├── docs/
 │   ├── mindu-modelagem.html        # artefato de modelagem
+│   ├── api-inventario.html         # quadro editável de implementação por responsável
+│   ├── api-tracker.js              # estado local e renderização do quadro
+│   ├── api-referencia-rotas.html   # auditoria técnica dos mappings
+│   ├── api-referencia-rotas.md     # inventário e exemplos curl
 │   └── mindu-postman-collection.json # coleção Postman (link de download no topo)
 └── README.md
 ```
+
+O arquivo Postman em `docs/mindu-postman-collection.json` contém os mappings atuais, variáveis `baseUrl` e `token` e um script de login que guarda o JWT sem registrá-lo no arquivo. Para conferir o catálogo contra os controllers, rode `python tools/audit_routes.py ..\javaMindU`; a ferramenta é somente leitura e deve terminar com `Diferenças: 0`.
 
 Os arquivos de dados são scripts clássicos carregados em ordem no `index.html` e no `rota.html`, antes de `script.js`. Essa organização mantém os exemplos separados da renderização e funciona sem build ou servidor de módulos, inclusive quando os arquivos são servidos localmente.
 

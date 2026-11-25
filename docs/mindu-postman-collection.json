@@ -2,12 +2,16 @@
   "info": {
     "name": "MindU — Backend (roteiro de testes)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Antes de rodar: preencha planoId e adminSenha (aba Variables) e selecione um arquivo no cadastro profissional. Rode as pastas 01 a 06 em ordem. Erros retornam JSON {erro}; validações incluem campos. 401 e 403 também são JSON. Login normaliza e-mail (trim + minúsculas), JWT expira em 1 hora e não há refresh token. Limite: 10 tentativas/minuto/IP; 429 inclui Retry-After. Listagens admin paginadas usam X-Total-Count, X-Page, X-Page-Size e X-Total-Pages (expostos via CORS). Consulte horários preferencialmente por GET; o POST antigo continua disponível como obsoleto."
+    "description": "MindU API. baseUrl e token são variáveis da coleção; o login salva automaticamente o JWT sem expô-lo em exemplos. JWT expira em 1 hora, sem refresh. 429 inclui Retry-After. As pastas originais preservam fluxos e testes negativos; API completa agrupa uma chamada por mapping atual. POST de horários permanece obsoleto por compatibilidade."
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
     },
     {
       "key": "planoId",
@@ -23,7 +27,7 @@
     },
     {
       "key": "senhaPadrao",
-      "value": "Senha@1234"
+      "value": "{{senhaTeste}}"
     },
     {
       "key": "sufixo",
@@ -104,6 +108,22 @@
     {
       "key": "anoMes",
       "value": "2026-10"
+    },
+    {
+      "key": "id",
+      "value": ""
+    },
+    {
+      "key": "senhaTeste",
+      "value": ""
+    },
+    {
+      "key": "emailTeste",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
     }
   ],
   "item": [
@@ -167,7 +187,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"razaoSocial\": \"Empresa Teste {{sufixo}} Ltda\",\n  \"nomeFantasia\": \"MindU Teste\",\n  \"inscricaoEstadual\": \"123456789\",\n  \"cnpj\": \"{{cnpj}}\",\n  \"responsavel\": \"Responsável Teste\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 1\",\n  \"bairro\": \"Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"email\": \"{{empresaEmail}}\",\n  \"telefone\": \"11999990000\",\n  \"senha\": \"{{senhaPadrao}}\",\n  \"planoId\": \"{{planoId}}\"\n}",
+              "raw": "{\n  \"razaoSocial\": \"Empresa Teste {{sufixo}} Ltda\",\n  \"nomeFantasia\": \"MindU Teste\",\n  \"inscricaoEstadual\": \"123456789\",\n  \"cnpj\": \"{{cnpj}}\",\n  \"responsavel\": \"Responsável Teste\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 1\",\n  \"bairro\": \"Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"email\": \"{{empresaEmail}}\",\n  \"telefone\": \"11999990000\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"planoId\": \"{{planoId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -212,7 +232,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{empresaEmail}}\",\n  \"senha\": \"{{senhaPadrao}}\"\n}",
+              "raw": "{\n  \"email\": \"{{empresaEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -290,13 +310,31 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/v1/empresas/me/matriculas?quantidade=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["v1", "empresas", "me", "matriculas"],
-              "query": [{"key": "quantidade", "value": "1"}]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "empresas",
+                "me",
+                "matriculas"
+              ],
+              "query": [
+                {
+                  "key": "quantidade",
+                  "value": "1"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
-              "bearer": [{"key": "token", "value": "{{tokenEmpresa}}", "type": "string"}]
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenEmpresa}}",
+                  "type": "string"
+                }
+              ]
             }
           }
         },
@@ -381,7 +419,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Cliente Teste\",\n  \"email\": \"cliente{{sufixo}}@teste.com\",\n  \"senha\": \"{{senhaPadrao}}\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo}}\"\n}",
+              "raw": "{\n  \"nome\": \"Cliente Teste\",\n  \"email\": \"cliente{{sufixo}}@teste.com\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -436,7 +474,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmailMaiusculo}}\",\n  \"senha\": \"{{senhaPadrao}}\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmailMaiusculo}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -799,7 +837,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"senha\": \"{{adminSenha}}\"\n}",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -891,7 +929,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{profissionalEmail}}\",\n  \"senha\": \"{{senhaPadrao}}\"\n}",
+              "raw": "{\n  \"email\": \"{{profissionalEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1068,11 +1106,25 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/v1/profissionais/{{profissionalId}}/horarios-disponiveis?data={{dataAgendamento}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["v1", "profissionais", "{{profissionalId}}", "horarios-disponiveis"],
-              "query": [{"key": "data", "value": "{{dataAgendamento}}"}]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "profissionais",
+                "{{profissionalId}}",
+                "horarios-disponiveis"
+              ],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "{{dataAgendamento}}"
+                }
+              ]
             },
-            "auth": {"type": "noauth"}
+            "auth": {
+              "type": "noauth"
+            }
           }
         },
         {
@@ -1092,60 +1144,177 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/v1/profissionais/{{profissionalId}}/horarios-disponiveis",
-              "host": ["{{baseUrl}}"],
-              "path": ["v1", "profissionais", "{{profissionalId}}", "horarios-disponiveis"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "profissionais",
+                "{{profissionalId}}",
+                "horarios-disponiveis"
+              ]
             },
-            "auth": {"type": "noauth"},
+            "auth": {
+              "type": "noauth"
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"data\": \"{{dataAgendamento}}\"\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
         {
           "name": "3.11 Meu perfil profissional (GET /me)",
           "description": "Rota recomendada; identidade obtida do token do profissional.",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
-            "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-            "pm.test(\"Retorna perfil\", () => pm.expect(pm.response.json()).to.have.property(\"id\"));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna perfil\", () => pm.expect(pm.response.json()).to.have.property(\"id\"));"
+                ]
+              }
+            }
+          ],
           "request": {
-            "method": "GET", "header": [],
-            "url": {"raw": "{{baseUrl}}/v1/profissionais/me", "host": ["{{baseUrl}}"], "path": ["v1", "profissionais", "me"]},
-            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{tokenProfissional}}", "type": "string"}]}
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/profissionais/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "profissionais",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenProfissional}}",
+                  "type": "string"
+                }
+              ]
+            }
           }
         },
         {
           "name": "3.12 Perfil profissional legado (compatibilidade)",
           "description": "Continua disponível; em novas integrações, prefira 3.11 GET /v1/profissionais/me.",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
-            "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-            "pm.test(\"Retorna perfil\", () => pm.expect(pm.response.json()).to.have.property(\"id\"));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna perfil\", () => pm.expect(pm.response.json()).to.have.property(\"id\"));"
+                ]
+              }
+            }
+          ],
           "request": {
-            "method": "GET", "header": [],
-            "url": {"raw": "{{baseUrl}}/v1/profissionais/conta/perfil", "host": ["{{baseUrl}}"], "path": ["v1", "profissionais", "conta", "perfil"]},
-            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{tokenProfissional}}", "type": "string"}]}
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/profissionais/conta/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "profissionais",
+                "conta",
+                "perfil"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenProfissional}}",
+                  "type": "string"
+                }
+              ]
+            }
           }
         },
         {
           "name": "3.13 Lista paginada do Admin e headers CORS",
           "description": "Verifica metadados de paginação e que o navegador pode ler os headers expostos.",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
-            "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-            "[\"X-Total-Count\", \"X-Page\", \"X-Page-Size\", \"X-Total-Pages\"].forEach(h => pm.test(h + \" presente\", () => pm.expect(pm.response.headers.get(h)).to.not.be.null));",
-            "const expostos = pm.response.headers.get(\"Access-Control-Expose-Headers\") || \"\";",
-            "[\"X-Total-Count\", \"X-Page\", \"X-Page-Size\", \"X-Total-Pages\"].forEach(h => pm.test(h + \" exposto via CORS\", () => pm.expect(expostos.toLowerCase()).to.include(h.toLowerCase())));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "[\"X-Total-Count\", \"X-Page\", \"X-Page-Size\", \"X-Total-Pages\"].forEach(h => pm.test(h + \" presente\", () => pm.expect(pm.response.headers.get(h)).to.not.be.null));",
+                  "const expostos = pm.response.headers.get(\"Access-Control-Expose-Headers\") || \"\";",
+                  "[\"X-Total-Count\", \"X-Page\", \"X-Page-Size\", \"X-Total-Pages\"].forEach(h => pm.test(h + \" exposto via CORS\", () => pm.expect(expostos.toLowerCase()).to.include(h.toLowerCase())));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{"key": "Origin", "value": "http://localhost:5173"}],
-            "url": {"raw": "{{baseUrl}}/v1/admin/profissionais?page=0&size=5", "host": ["{{baseUrl}}"], "path": ["v1", "admin", "profissionais"], "query": [{"key": "page", "value": "0"}, {"key": "size", "value": "5"}]},
-            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{tokenAdmin}}", "type": "string"}]}
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://localhost:5173"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/profissionais?page=0&size=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "profissionais"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            }
           }
         }
       ]
@@ -1653,7 +1822,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"razaoSocial\": \"Outra Empresa {{sufixo}} Ltda\",\n  \"nomeFantasia\": \"MindU Teste\",\n  \"inscricaoEstadual\": \"123456789\",\n  \"cnpj\": \"{{cnpj}}\",\n  \"responsavel\": \"Responsável Teste\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 1\",\n  \"bairro\": \"Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"email\": \"outra{{sufixo}}@teste.com\",\n  \"telefone\": \"11999990000\",\n  \"senha\": \"{{senhaPadrao}}\",\n  \"planoId\": \"{{planoId}}\"\n}",
+              "raw": "{\n  \"razaoSocial\": \"Outra Empresa {{sufixo}} Ltda\",\n  \"nomeFantasia\": \"MindU Teste\",\n  \"inscricaoEstadual\": \"123456789\",\n  \"cnpj\": \"{{cnpj}}\",\n  \"responsavel\": \"Responsável Teste\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 1\",\n  \"bairro\": \"Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"email\": \"outra{{sufixo}}@teste.com\",\n  \"telefone\": \"11999990000\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"planoId\": \"{{planoId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1739,7 +1908,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Clone\",\n  \"email\": \"clone{{sufixo}}@teste.com\",\n  \"senha\": \"{{senhaPadrao}}\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo}}\"\n}",
+              "raw": "{\n  \"nome\": \"Clone\",\n  \"email\": \"clone{{sufixo}}@teste.com\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1779,7 +1948,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Clone\",\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaPadrao}}\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo2}}\"\n}",
+              "raw": "{\n  \"nome\": \"Clone\",\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo2}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1820,7 +1989,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"razaoSocial\": \"Empresa Dois {{sufixo}} Ltda\",\n  \"nomeFantasia\": \"MindU Teste\",\n  \"inscricaoEstadual\": \"123456789\",\n  \"cnpj\": \"{{cnpj2}}\",\n  \"responsavel\": \"Responsável Teste\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 1\",\n  \"bairro\": \"Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"email\": \"empresa2-{{sufixo}}@teste.com\",\n  \"telefone\": \"11999990000\",\n  \"senha\": \"{{senhaPadrao}}\",\n  \"planoId\": \"{{planoId}}\"\n}",
+              "raw": "{\n  \"razaoSocial\": \"Empresa Dois {{sufixo}} Ltda\",\n  \"nomeFantasia\": \"MindU Teste\",\n  \"inscricaoEstadual\": \"123456789\",\n  \"cnpj\": \"{{cnpj2}}\",\n  \"responsavel\": \"Responsável Teste\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 1\",\n  \"bairro\": \"Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"email\": \"empresa2-{{sufixo}}@teste.com\",\n  \"telefone\": \"11999990000\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"planoId\": \"{{planoId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1860,7 +2029,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Intruso\",\n  \"email\": \"intruso{{sufixo}}@teste.com\",\n  \"senha\": \"{{senhaPadrao}}\",\n  \"empresaId\": \"{{empresa2Id}}\",\n  \"matricula\": \"{{matriculaCodigo2}}\"\n}",
+              "raw": "{\n  \"nome\": \"Intruso\",\n  \"email\": \"intruso{{sufixo}}@teste.com\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"empresaId\": \"{{empresa2Id}}\",\n  \"matricula\": \"{{matriculaCodigo2}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1901,7 +2070,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Senha Curta\",\n  \"email\": \"curta{{sufixo}}@teste.com\",\n  \"senha\": \"1234567\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo2}}\"\n}",
+              "raw": "{\n  \"nome\": \"Senha Curta\",\n  \"email\": \"curta{{sufixo}}@teste.com\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"empresaId\": \"{{empresaId}}\",\n  \"matricula\": \"{{matriculaCodigo2}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1977,7 +2146,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"naoexiste@teste.com\",\n  \"senha\": \"qualquer123\"\n}",
+              "raw": "{\n  \"email\": \"naoexiste@teste.com\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2020,7 +2189,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"senhaErrada123\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2063,7 +2232,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"senhaErrada123\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2106,7 +2275,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"senhaErrada123\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2149,7 +2318,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"senhaErrada123\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2192,7 +2361,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"senhaErrada123\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2235,7 +2404,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaPadrao}}\"\n}",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2247,6 +2416,2392 @@
         }
       ],
       "description": "Rode por último. Os logins negativos aceitam 401 ou 429 e verificam Retry-After quando limitado. Execute esta sequência somente em Local com contas de teste controladas; nunca a rode contra produção."
+    },
+    {
+      "name": "API completa (mappings atuais)",
+      "item": [
+        {
+          "name": "Perfil: Admin",
+          "item": [
+            {
+              "name": "GET /v1/admin/profissionais",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/profissionais",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "profissionais"
+                  ]
+                },
+                "description": "Listar profissionais; filtros opcionais status e ativo. Paginação opcional com page (inicia em 0) e size (1–100); sem esses parâmetros, retorna a lista completa. Quando paginado, leia X-Total-Count, X-Page, X-Page-Size e X-Total-Pages no JavaScript; estão expostos via CORS.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/admin/profissionais/{id}/carteirinha",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/profissionais/{{id}}/carteirinha",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "profissionais",
+                    "{{id}}",
+                    "carteirinha"
+                  ]
+                },
+                "description": "Visualizar a carteirinha enviada pelo profissional, inclusive quando estiver pendente\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/admin/profissionais/{id}/foto",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/profissionais/{{id}}/foto",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "profissionais",
+                    "{{id}}",
+                    "foto"
+                  ]
+                },
+                "description": "Visualizar foto de perfil para análise administrativa, inclusive antes da aprovação do profissional\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/admin/profissionais/pendentes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/profissionais/pendentes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "profissionais",
+                    "pendentes"
+                  ]
+                },
+                "description": "Listar profissionais aguardando aprovação; paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/admin/clientes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "clientes"
+                  ]
+                },
+                "description": "Listar clientes; filtros opcionais status, empresaId e ativo. Paginação opcional com page (inicia em 0) e size (1–100); sem paginação retorna a lista completa. Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages são expostos via CORS.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/admin/empresas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/empresas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "empresas"
+                  ]
+                },
+                "description": "Listar empresas; filtro opcional ativo e paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/admin/solicitacoes-exclusao",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/solicitacoes-exclusao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "solicitacoes-exclusao"
+                  ]
+                },
+                "description": "Listar solicitações; filtro opcional status e paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/admin/agendamentos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/agendamentos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "agendamentos"
+                  ]
+                },
+                "description": "Listar agendamentos; filtros opcionais status, clienteId e profissionalId. Paginação opcional com page (inicia em 0) e size (1–100). Headers X-Total-Count, X-Page, X-Page-Size e X-Total-Pages estão expostos via CORS.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "DELETE /v1/admin/empresas/{id}",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/empresas/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "empresas",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Desativar a conta da empresa e invalidar seus tokens atuais\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/admin/empresas/{id}/reativacao",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/empresas/{{id}}/reativacao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "empresas",
+                    "{{id}}",
+                    "reativacao"
+                  ]
+                },
+                "description": "Reativar uma empresa desativada; invalida tokens anteriores. Operação idempotente.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "DELETE /v1/admin/profissionais/{id}",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/profissionais/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "profissionais",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Desativar a conta profissional e invalidar seus tokens atuais\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/admin/profissionais/{id}/reativacao",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/profissionais/{{id}}/reativacao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "profissionais",
+                    "{{id}}",
+                    "reativacao"
+                  ]
+                },
+                "description": "Reativar uma conta profissional desativada; invalida tokens anteriores. Operação idempotente.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "DELETE /v1/admin/clientes/{id}",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/clientes/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "clientes",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Desativar a conta do cliente e invalidar seus tokens atuais\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/admin/clientes/{id}/reativacao",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/clientes/{{id}}/reativacao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "clientes",
+                    "{{id}}",
+                    "reativacao"
+                  ]
+                },
+                "description": "Reativar uma conta de cliente desativada; invalida tokens anteriores. Operação idempotente.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/admin/empresas/{id}/contrato",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/empresas/{{id}}/contrato",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "empresas",
+                    "{{id}}",
+                    "contrato"
+                  ]
+                },
+                "description": "Definir vigência e dia de pagamento do contrato (dia 1–28).\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"inicioVigencia\": \"2026-11-01\",\n  \"fimVigencia\": null,\n  \"diaPagamento\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/admin/solicitacoes-exclusao/{id}",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/solicitacoes-exclusao/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "solicitacoes-exclusao",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Atualizar análise de solicitação de exclusão.\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"EM_ANALISE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/profissionais/{id}/aprovacao",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/aprovacao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "aprovacao"
+                  ]
+                },
+                "description": "Aprovar ou rejeitar profissional (?aprovado=true)\nAutorização: Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Autenticado",
+          "item": [
+            {
+              "name": "GET /v1/auth/me",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/auth/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "auth",
+                    "me"
+                  ]
+                },
+                "description": "Obter sua conta e tipo pelo token; não envie seu próprio ID na URL\nAutorização: Autenticado.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PUT /v1/auth/senha",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/auth/senha",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "auth",
+                    "senha"
+                  ]
+                },
+                "description": "Trocar senha informando a senha atual\nAutorização: Autenticado.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"senhaAtual\": \"{{senhaTeste}}\",\n  \"novaSenha\": \"{{senhaTeste}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/chat",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/chat",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "chat"
+                  ]
+                },
+                "description": "Envia uma mensagem de texto à Mila. Requer JWT; histórico é enviado pelo próprio cliente e não fica salvo no servidor.\nAutorização: Autenticado.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"message\": \"O que é o MindU?\",\n  \"history\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Olá\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"content\": \"Oi! Como posso ajudar?\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/chat/audio",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/chat/audio",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "chat",
+                    "audio"
+                  ]
+                },
+                "description": "Envia áudio para transcrição e resposta da Mila. multipart/form-data com file obrigatório, message e history opcionais. Imagens e PDFs não são suportados.\nAutorização: Autenticado.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "value": "arquivo de áudio",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "message",
+                      "value": "Mensagem curta de teste",
+                      "type": "text"
+                    },
+                    {
+                      "key": "history",
+                      "value": "[]",
+                      "type": "text"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Cliente",
+          "item": [
+            {
+              "name": "POST /v1/agendamentos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/agendamentos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "agendamentos"
+                  ]
+                },
+                "description": "Agendar uma consulta\nAutorização: Cliente.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"profissionalId\": \"{{id}}\",\n  \"dataHora\": \"2026-10-20T09:00:00\",\n  \"modalidade\": \"VIRTUAL\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "GET /v1/agendamentos/meus",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/agendamentos/meus",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "agendamentos",
+                    "meus"
+                  ]
+                },
+                "description": "Meus agendamentos; filtro mensal opcional ?data=2026-10\nAutorização: Cliente.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/clientes/me",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "me"
+                  ]
+                },
+                "description": "Obter meu perfil sem enviar o ID na URL\nAutorização: Cliente.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/clientes/me/dados-sensiveis",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/me/dados-sensiveis",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "me",
+                    "dados-sensiveis"
+                  ]
+                },
+                "description": "Ler CNS, nascimento, nome da mãe e gênero do próprio perfil\nAutorização: Cliente.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/clientes/me",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "me"
+                  ]
+                },
+                "description": "Atualizar telefone/endereço do próprio perfil sem enviar ID\nAutorização: Cliente.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"telefone\": \"11999990000\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/clientes/me/dados-sensiveis",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/me/dados-sensiveis",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "me",
+                    "dados-sensiveis"
+                  ]
+                },
+                "description": "Enviar dados sensíveis do próprio perfil; identidade vem do token\nAutorização: Cliente.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cns\": \"898001234567890\",\n  \"dataNascimento\": \"1995-03-20\",\n  \"nomeMae\": \"Ana Silva\",\n  \"genero\": \"FEMININO\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Cliente/Admin",
+          "item": [
+            {
+              "name": "GET /v1/clientes/{id}",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Consultar perfil por ID; cliente acessa apenas o próprio cadastro\nAutorização: Cliente/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/clientes/{id}",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Atualizar telefone/endereço do cliente; a API valida titularidade\nAutorização: Cliente/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"telefone\": \"11999990000\",\n  \"cep\": \"01001000\",\n  \"cidade\": \"São Paulo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/clientes/{id}/dados-sensiveis",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/{{id}}/dados-sensiveis",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "{{id}}",
+                    "dados-sensiveis"
+                  ]
+                },
+                "description": "Cadastro — etapa 2 (CNS, nascimento, gênero)\nAutorização: Cliente/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cns\": \"898001234567890\",\n  \"dataNascimento\": \"1995-03-20\",\n  \"nomeMae\": \"Ana Silva\",\n  \"genero\": \"FEMININO\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Cliente/Empresa/Profissional",
+          "item": [
+            {
+              "name": "POST /v1/conta/solicitacao-exclusao",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/conta/solicitacao-exclusao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "conta",
+                    "solicitacao-exclusao"
+                  ]
+                },
+                "description": "Solicitar exclusão da conta autenticada; desativa a conta imediatamente e cria solicitação para análise. Admin não pode chamar esta rota.\nAutorização: Cliente/Empresa/Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Cliente/Profissional/Admin",
+          "item": [
+            {
+              "name": "PATCH /v1/agendamentos/{id}/cancelamento",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/agendamentos/{{id}}/cancelamento",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "agendamentos",
+                    "{{id}}",
+                    "cancelamento"
+                  ]
+                },
+                "description": "Cancelar um agendamento\nAutorização: Cliente/Profissional/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/agendamentos/{id}/horario",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/agendamentos/{{id}}/horario",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "agendamentos",
+                    "{{id}}",
+                    "horario"
+                  ]
+                },
+                "description": "Reagendar uma consulta; novo horário vai no body\nAutorização: Cliente/Profissional/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dataHora\": \"2026-10-21T09:00:00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Empresa",
+          "item": [
+            {
+              "name": "PATCH /v1/clientes/{id}/aprovacao",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/{{id}}/aprovacao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "{{id}}",
+                    "aprovacao"
+                  ]
+                },
+                "description": "Aprovar ou rejeitar o cliente (?aprovado=true)\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/empresas/me",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "me"
+                  ]
+                },
+                "description": "Obter perfil completo da empresa autenticada\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/empresas/me",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "me"
+                  ]
+                },
+                "description": "Atualizar contato/endereço da empresa autenticada\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nomeFantasia\": \"Acme Saúde\",\n  \"responsavel\": \"Ana Souza\",\n  \"telefone\": \"11999990000\",\n  \"cidade\": \"São Paulo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/empresas/me/matriculas",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/me/matriculas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "me",
+                    "matriculas"
+                  ]
+                },
+                "description": "Gerar matrículas da empresa autenticada (?quantidade=5); resposta 201 Created\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/empresas/me/matriculas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/me/matriculas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "me",
+                    "matriculas"
+                  ]
+                },
+                "description": "Listar todas as matrículas da empresa autenticada, inclusive após atualizar a página\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/empresas/me/dashboard",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/me/dashboard",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "me",
+                    "dashboard"
+                  ]
+                },
+                "description": "Dashboard da empresa autenticada; identidade vem do token\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/empresas/{id}/dashboard",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/{{id}}/dashboard",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "{{id}}",
+                    "dashboard"
+                  ]
+                },
+                "description": "Contadores do painel da empresa\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "DELETE /v1/clientes/{id}",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Excluir um funcionário da própria empresa; remove também os agendamentos dele\nAutorização: Empresa.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Empresa/Admin",
+          "item": [
+            {
+              "name": "GET /v1/clientes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes"
+                  ]
+                },
+                "description": "Listar clientes da empresa autenticada (opcional: ?status=APROVADO)\nAutorização: Empresa/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/empresas/{id}",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Consultar empresa por ID; a API valida a titularidade\nAutorização: Empresa/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/empresas/{id}",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Atualizar empresa por ID; a API valida a titularidade\nAutorização: Empresa/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"telefone\": \"11999990000\",\n  \"responsavel\": \"Ana Souza\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/empresas/{id}/matriculas",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/{{id}}/matriculas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "{{id}}",
+                    "matriculas"
+                  ]
+                },
+                "description": "Gerar matrículas (?quantidade=5); resposta 201 Created\nAutorização: Empresa/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/empresas/{id}/matriculas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/{{id}}/matriculas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "{{id}}",
+                    "matriculas"
+                  ]
+                },
+                "description": "Listar matrículas da empresa; a API valida a titularidade\nAutorização: Empresa/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Profissional",
+          "item": [
+            {
+              "name": "GET /v1/agendamentos/minha-agenda",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/agendamentos/minha-agenda",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "agendamentos",
+                    "minha-agenda"
+                  ]
+                },
+                "description": "Agenda própria; filtro mensal opcional ?data=2026-10\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/profissionais/me",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "me"
+                  ]
+                },
+                "description": "Consultar perfil da conta profissional autenticada (rota /me recomendada)\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/profissionais/conta/perfil",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/conta/perfil",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "conta",
+                    "perfil"
+                  ]
+                },
+                "description": "Consultar perfil autenticado; rota antiga mantida por compatibilidade, prefira GET /v1/profissionais/me\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/profissionais/{id}",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Atualizar dados textuais do próprio perfil\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nome\": \"João Lima\",\n  \"telefone\": \"11999990000\",\n  \"bio\": \"Atendimento acolhedor\",\n  \"tipo\": \"PSICOLOGO\",\n  \"tags\": [\n    \"ansiedade\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/profissionais/{id}/locais",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/locais",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "locais"
+                  ]
+                },
+                "description": "Adicionar local de atendimento\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"modalidade\": \"PRESENCIAL\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Av. Paulista\",\n  \"numero\": \"1000\",\n  \"bairro\": \"Bela Vista\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "PUT /v1/profissionais/{id}/disponibilidade",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/disponibilidade",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "disponibilidade"
+                  ]
+                },
+                "description": "Definir os horários da semana\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  {\n    \"diaSemana\": \"SEGUNDA\",\n    \"horaInicio\": \"08:00\",\n    \"horaFim\": \"12:00\"\n  }\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/profissionais/{id}/perfil",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/perfil",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "perfil"
+                  ]
+                },
+                "description": "Enviar foto/banner: PNG ou JPEG até 5 MB cada\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "foto",
+                      "value": "(arquivo opcional)",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "fotoBanner",
+                      "value": "(arquivo opcional)",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/profissionais/{id}/carteirinha",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/carteirinha",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "carteirinha"
+                  ]
+                },
+                "description": "Reenviar carteirinha após rejeição; multipart PNG/JPEG/JPG até 5 MB e 12 MP.\nAutorização: Profissional.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "fotoCarteirinha",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Profissional/Admin",
+          "item": [
+            {
+              "name": "PATCH /v1/agendamentos/{id}/realizacao",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/agendamentos/{{id}}/realizacao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "agendamentos",
+                    "{{id}}",
+                    "realizacao"
+                  ]
+                },
+                "description": "Marcar consulta como realizada; permitido ao profissional dono do agendamento ou Admin. Só funciona quando o status atual é AGENDADO.\nAutorização: Profissional/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "PATCH /v1/agendamentos/{id}/link-online",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/agendamentos/{{id}}/link-online",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "agendamentos",
+                    "{{id}}",
+                    "link-online"
+                  ]
+                },
+                "description": "Definir link HTTPS para consulta virtual; profissional dono do agendamento ou Admin.\nAutorização: Profissional/Admin.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"linkOnline\": \"https://consulta.exemplo.test/sala\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil: Público",
+          "item": [
+            {
+              "name": "POST /v1/auth/login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Login — normaliza o e-mail (trim + minúsculas) e retorna JWT válido por 1 hora; não há refresh token\nAutorização: Público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{emailTeste}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 200) { const data = pm.response.json(); if (data.token) pm.collectionVariables.set(\"token\", data.token); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /v1/auth/esqueci-senha",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/auth/esqueci-senha",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "auth",
+                    "esqueci-senha"
+                  ]
+                },
+                "description": "Solicitar link de recuperação. A resposta é igual para e-mails existentes e inexistentes; conta ativa recebe link de uso único válido por 15 minutos.\nAutorização: Público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"usuario@email.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/auth/redefinir-senha",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/auth/redefinir-senha",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "auth",
+                    "redefinir-senha"
+                  ]
+                },
+                "description": "Definir nova senha usando o token recebido no link por e-mail; sucesso retorna 204 No Content.\nAutorização: Público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"novaSenha\": \"{{senhaTeste}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/clientes",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "clientes"
+                  ]
+                },
+                "description": "Cadastro — etapa 1 (com matrícula)\nAutorização: Público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nome\": \"Maria Silva\",\n  \"email\": \"maria@email.com\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"empresaId\": \"{{id}}\",\n  \"matricula\": \"A1B2C3\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST /v1/empresas",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas"
+                  ]
+                },
+                "description": "Cadastrar empresa\nAutorização: Público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"razaoSocial\": \"Acme Ltda\",\n  \"nomeFantasia\": \"Acme\",\n  \"inscricaoEstadual\": \"123456789\",\n  \"cnpj\": \"00000000000191\",\n  \"responsavel\": \"Ana Souza\",\n  \"cep\": \"01001000\",\n  \"logradouro\": \"Praça da Sé\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 1\",\n  \"bairro\": \"Sé\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"email\": \"acme@empresa.com\",\n  \"telefone\": \"11999990000\",\n  \"senha\": \"{{senhaTeste}}\",\n  \"planoId\": \"<uuid do plano>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "GET /v1/empresas/validar-matricula",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/empresas/validar-matricula",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "empresas",
+                    "validar-matricula"
+                  ]
+                },
+                "description": "Validar matrícula antes do cadastro (?codigo=A1B2C3)\nAutorização: Público."
+              }
+            },
+            {
+              "name": "GET /v1/planos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/planos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "planos"
+                  ]
+                },
+                "description": "Listar planos disponíveis — use o id retornado em planoId ao cadastrar uma empresa\nAutorização: Público."
+              }
+            },
+            {
+              "name": "POST /v1/profissionais",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais"
+                  ]
+                },
+                "description": "Cadastro — multipart/form-data (campos soltos + foto)\nAutorização: Público.",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "nome",
+                      "value": "João Lima",
+                      "type": "text"
+                    },
+                    {
+                      "key": "email",
+                      "value": "joao@mindu.com",
+                      "type": "text"
+                    },
+                    {
+                      "key": "senha",
+                      "value": "<SENHA_DE_TESTE>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "tipo",
+                      "value": "(opcional)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "tags",
+                      "value": "(opcional)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "fotoCarteirinha",
+                      "value": "(obrigatório)",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /v1/profissionais",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais"
+                  ]
+                },
+                "description": "Buscar profissionais aprovados (?modalidade=&nome=&especialidade=)\nAutorização: Público."
+              }
+            },
+            {
+              "name": "GET /v1/profissionais/{id}",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}"
+                  ]
+                },
+                "description": "Detalhes públicos do profissional, locais e disponibilidade semanal\nAutorização: Público."
+              }
+            },
+            {
+              "name": "GET /v1/profissionais/{id}/horarios-disponiveis",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/horarios-disponiveis",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "horarios-disponiveis"
+                  ]
+                },
+                "description": "Recomendado: consultar horários livres com data na query (?data=AAAA-MM-DD); padrão 50 min e fuso America/Sao_Paulo\nAutorização: Público."
+              }
+            },
+            {
+              "name": "POST /v1/profissionais/{id}/horarios-disponiveis",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/horarios-disponiveis",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "horarios-disponiveis"
+                  ]
+                },
+                "description": "⚠️ OBSOLETO — continua funcionando por compatibilidade; novos consumidores devem usar GET /v1/profissionais/{id}/horarios-disponiveis com ?data=AAAA-MM-DD\nAutorização: Público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": \"2026-10-20\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "GET /v1/profissionais/{id}/foto",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/foto",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "foto"
+                  ]
+                },
+                "description": "Baixar a foto de perfil do profissional aprovado\nAutorização: Público."
+              }
+            },
+            {
+              "name": "GET /v1/profissionais/{id}/banner",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/profissionais/{{id}}/banner",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "profissionais",
+                    "{{id}}",
+                    "banner"
+                  ]
+                },
+                "description": "Baixar o banner do profissional aprovado\nAutorização: Público."
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

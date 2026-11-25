@@ -105,6 +105,8 @@ Call<Void> excluirCliente(@Path("id") String clienteId);` },
       reqBody: null, resBody: "204 No Content",
       react: `await api("/v1/admin/clientes/" + clienteId + "/reativacao", { method: "PATCH" });`,
       android: `@PATCH("v1/admin/clientes/{id}/reativacao")
-Call<Void> reativarCliente(@Path("id") String id);` }
+Call<Void> reativarCliente(@Path("id") String id);` },
+    { m: "patch", path: "/v1/admin/empresas/{id}/contrato", auth: "Admin", desc: "Definir vigência e dia de pagamento do contrato (dia 1–28).", reqBody: { inicioVigencia: "2026-11-01", fimVigencia: null, diaPagamento: 10 }, resBody: { id: "<uuid>", inicioVigenciaPlano: "2026-11-01", fimVigenciaPlano: null, diaPagamento: 10 }, react: `await api("/v1/admin/empresas/" + empresaId + "/contrato", { method: "PATCH", body: { inicioVigencia: "2026-11-01", diaPagamento: 10 } });`, android: `@PATCH("v1/admin/empresas/{id}/contrato")\nCall<EmpresaResponse> atualizarContrato(@Path("id") String id, @Body ContratoPlanoRequest body);` },
+    { m: "patch", path: "/v1/admin/solicitacoes-exclusao/{id}", auth: "Admin", desc: "Atualizar análise de solicitação de exclusão.", reqBody: { status: "EM_ANALISE" }, resBody: { id: "<uuid>", status: "EM_ANALISE" }, react: `await api("/v1/admin/solicitacoes-exclusao/" + id, { method: "PATCH", body: { status: "EM_ANALISE" } });`, android: `@PATCH("v1/admin/solicitacoes-exclusao/{id}")\nCall<SolicitacaoExclusaoResponse> atualizarSolicitacao(@Path("id") String id, @Body AtualizarSolicitacaoRequest body);` }
   ]}
 );

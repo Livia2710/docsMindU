@@ -1,7 +1,7 @@
 /* ========== Configuração ========== */
 const ENV = {
   local: "http://localhost:8080",
-  web: "https://mindu-api.onrender.com"
+  web: (() => { try { return localStorage.getItem("mindu-web-base-url") || ""; } catch (_) { return ""; } })()
 };
 const ANDROID_LOCAL = "http://10.0.2.2:8080";
 const THEME_STORAGE_KEY = "mindu-theme";
@@ -48,9 +48,13 @@ function initializeTheme() {
 /* ========== Ambiente (Local / Web) ========== */
 function setEnv(env) {
   currentEnv = env;
-  document.getElementById("env-local").classList.toggle("active", env === "local");
-  document.getElementById("env-web").classList.toggle("active", env === "web");
-  const url = env === "local" ? ENV.local : ENV.web;
+  const localButton = document.getElementById("env-local");
+  const webButton = document.getElementById("env-web");
+  if (localButton) localButton.classList.toggle("active", env === "local");
+  if (webButton) webButton.classList.toggle("active", env === "web");
+  const url = env === "local" ? ENV.local : (ENV.web || "[URL_WEB_CONFIGURAVEL]");
+  const webDisplay = document.getElementById("web-url-display");
+  if (webDisplay) webDisplay.textContent = ENV.web || "URL não configurada";
   document.querySelectorAll(".baseurl").forEach(element => {
     const isAndroid = element.closest("[data-panel='android']");
     element.textContent = isAndroid ? (env === "local" ? ANDROID_LOCAL : ENV.web) : url;
@@ -264,6 +268,15 @@ function syncTopbar() {
 
 /* ========== Inicialização ========== */
 function init() {
+  const webInput = document.getElementById("web-base-url");
+  if (webInput) {
+    webInput.value = ENV.web;
+    webInput.addEventListener("change", () => {
+      ENV.web = webInput.value.trim().replace(/\/$/, "");
+      try { localStorage.setItem("mindu-web-base-url", ENV.web); } catch (_) {}
+      if (currentEnv === "web") setEnv("web");
+    });
+  }
   const reqRoute = document.getElementById("req-route");
   if (reqRoute) {
     reqRoute.href = issueURL(

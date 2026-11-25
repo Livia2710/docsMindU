@@ -16,22 +16,24 @@
 <script src="data/routes/admin.js" defer></script>
 <script src="data/routes/chat.js" defer></script>
 <script src="data/routes/agendamento.js" defer></script>
+<script src="data/routes/conta.js" defer></script>
 <script src="data/route-errors.js" defer></script>
 <script src="data/route-guides.js" defer></script>
 <script src="data/field-help.js" defer></script>
 <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="topbar">
-    <h1>MindU · API</h1>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark">M</span><span>MindU <small>API</small></span></a>
+    <nav class="topbar-nav" aria-label="Navegação principal"><a class="active" href="index.html">Rotas</a><a href="docs/api-inventario.html">Acompanhamento</a></nav>
     <div class="spacer"></div>
-    <div class="env-toggle" role="group" aria-label="Ambiente">
-      <button id="env-local" class="active" data-env="local">Local</button>
-      <button id="env-web" data-env="web">Web</button>
+    <div class="topbar-actions">
+      <div class="env-toggle" role="group" aria-label="Ambiente"><button id="env-local" class="active" data-env="local">Local</button><button id="env-web" data-env="web">Web</button></div>
+      <details class="web-url-config"><summary>URL</summary><input id="web-base-url" type="url" placeholder="https://api.exemplo.test" aria-label="URL base do ambiente Web"></details>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
+      <details class="topbar-more"><summary>Mais</summary><div class="topbar-menu-panel"><a href="docs/api-inventario.html">Acompanhamento</a><a href="tutorial.html">Tutorial: API local</a><a href="integracao-mila.html">Guia: integrar a Mila</a><a href="docs/api-referencia-rotas.html">Auditoria técnica das rotas</a><a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a></div></details>
     </div>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
-    <div class="dl"><a href="index.html">← Todas as rotas</a><a href="tutorial.html">Tutorial: API local</a><a href="integracao-mila.html">Guia: integrar a Mila</a><a href="docs/mindu-postman-collection.json" download>↓ Coleção Postman</a></div>
-  </div>
+  </header>
   <main class="route-detail-shell" id="route-detail"></main>
   <footer>MindU — documentação da API. Os exemplos são ilustrativos; confira os campos obrigatórios indicados em cada guia.</footer>
 </body>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acompanhamento de rotas · MindU</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script src="../data/routes/auth.js" defer></script>
+  <script src="../data/routes/planos.js" defer></script>
+  <script src="../data/routes/empresa.js" defer></script>
+  <script src="../data/routes/cliente.js" defer></script>
+  <script src="../data/routes/profissional.js" defer></script>
+  <script src="../data/routes/admin.js" defer></script>
+  <script src="../data/routes/chat.js" defer></script>
+  <script src="../data/routes/agendamento.js" defer></script>
+  <script src="../data/routes/conta.js" defer></script>
+  <script src="api-tracker.js" defer></script>
+</head>
+<body class="tracker-page">
+  <header class="topbar tracker-topbar">
+    <a class="brand" href="../index.html"><span class="brand-mark">M</span><span>MindU <small>API</small></span></a>
+    <nav class="topbar-nav" aria-label="Navegação principal">
+      <a href="../index.html">Documentação</a>
+      <a class="active" href="api-inventario.html" aria-current="page">Acompanhamento</a>
+    </nav>
+    <div class="spacer"></div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
+  </header>
+
+  <div class="tracker-shell">
+    <aside class="tracker-sidebar" aria-label="Responsáveis">
+      <p class="sidebar-caption">ACOMPANHAMENTO</p>
+      <p class="sidebar-label">Implementações</p>
+      <button class="profile-choice active" data-profile="sabrina" type="button">
+        <span class="profile-avatar sabrina-avatar">S</span><span class="profile-choice-text"><strong>Sabrina</strong><small>React · <span data-side-count="sabrina">0/0</span></small></span>
+      </button>
+      <button class="profile-choice" data-profile="manoela" type="button">
+        <span class="profile-avatar manoela-avatar">M</span><span class="profile-choice-text"><strong>Manoela</strong><small>Android · <span data-side-count="manoela">0/0</span></small></span>
+      </button>
+      <div class="sidebar-divider"></div>
+      <a class="sidebar-link" href="api-referencia-rotas.html">Referência técnica <span>↗</span></a>
+      <a class="sidebar-link" href="../index.html">Catálogo da API <span>↗</span></a>
+      <a class="sidebar-link" href="mindu-postman-collection.json" download>Coleção Postman <span>↓</span></a>
+      <div class="sidebar-note">O progresso fica salvo neste navegador. Cada responsável tem seu próprio estado.</div>
+    </aside>
+
+    <main class="tracker-main">
+      <div class="tracker-breadcrumb"><a href="../index.html">MindU API</a><span>/</span><span>Acompanhamento</span></div>
+      <div class="tracker-heading">
+        <div><p class="eyebrow">PAINEL DE IMPLEMENTAÇÃO</p><h1>Rotas da API</h1><p class="tracker-subtitle">Acompanhe o que já entrou em cada cliente e mantenha visíveis as tarefas que faltam.</p></div>
+        <button class="bulk-button" id="bulk-toggle" type="button">Marcar todas como implementadas</button>
+      </div>
+
+      <section class="overview-cards" aria-label="Resumo de progresso">
+        <article class="overview-card"><span class="card-icon route-icon">↗</span><div><p>Total de rotas</p><strong id="total-count">0</strong><small>mapeadas no backend</small></div></article>
+        <article class="overview-card"><span class="card-icon sabrina-icon">S</span><div><p>Sabrina · React</p><strong id="sabrina-overview">0%</strong><small id="sabrina-overview-count">0 de 0 implementadas</small></div></article>
+        <article class="overview-card"><span class="card-icon manoela-icon">M</span><div><p>Manoela · Android</p><strong id="manoela-overview">0%</strong><small id="manoela-overview-count">0 de 0 implementadas</small></div></article>
+      </section>
+
+      <section class="active-progress" aria-labelledby="active-profile-name">
+        <div class="active-profile-icon" id="active-profile-icon">S</div>
+        <div class="active-profile-info"><div class="active-profile-line"><h2 id="active-profile-name">Sabrina</h2><span id="active-profile-client">React</span></div><p id="active-profile-count">0 de 0 rotas implementadas</p></div>
+        <div class="progress-track" role="progressbar" aria-label="Progresso da responsável" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="active-progress-fill"></span></div>
+        <strong class="progress-percent" id="active-progress-percent">0%</strong>
+      </section>
+
+      <section class="route-workspace">
+        <div class="workspace-heading"><div><h2 id="table-heading">Rotas da Sabrina</h2><p id="visible-count">0 rotas pendentes</p></div><div class="workspace-tools">
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="route-search" type="search" placeholder="Buscar rota ou domínio" aria-label="Buscar rota ou domínio"></label>
+          <label class="completed-filter"><input id="show-completed" type="checkbox"><span>Mostrar implementadas</span></label>
+        </div></div>
+        <div class="table-scroll"><table class="tracker-table"><thead><tr><th>ROTA</th><th>ÁREA</th><th>ACESSO</th><th>STATUS</th><th class="action-heading">AÇÃO</th></tr></thead><tbody id="route-rows"></tbody></table></div>
+        <div class="empty-state" id="empty-state" hidden><span>✓</span><strong>Tudo em dia</strong><p>Não há rotas pendentes para este filtro.</p><button type="button" id="show-all-again">Mostrar todas as rotas</button></div>
+        <p class="tracker-footnote">Marcar uma rota como implementada remove-a desta lista por padrão. Desative “Mostrar implementadas” para rever ou reabrir qualquer item.</p>
+      </section>
+    </main>
+  </div>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const saved = (() => { try { return localStorage.getItem("mindu-theme"); } catch (_) { return null; } })();
+      root.dataset.theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      const button = document.getElementById("theme-toggle");
+      const setLabel = () => { const dark = root.dataset.theme === "dark"; button.textContent = dark ? "☾" : "☼"; button.title = dark ? "Ativar modo claro" : "Ativar modo escuro"; };
+      setLabel();
+      button.addEventListener("click", () => { root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark"; try { localStorage.setItem("mindu-theme", root.dataset.theme); } catch (_) {} setLabel(); });
+    })();
+  </script>
+</body>
+</html>

@@ -39,7 +39,8 @@ Call<AgendamentoResponse> reagendar(@Path("id") String id, @Body ReagendarReques
       resBody: { id: "<uuid>", clienteId: "<uuid>", clienteNome: "Maria Silva", profissionalId: "<uuid>", profissionalNome: "Dr. João Lima", status: "REALIZADO", dataHora: "2026-10-20T09:00:00", modalidade: "VIRTUAL", linkOnline: "https://consulta.exemplo" },
       react: `const realizado = await api("/v1/agendamentos/" + id + "/realizacao", { method: "PATCH" });`,
       android: `@PATCH("v1/agendamentos/{id}/realizacao")
-Call<AgendamentoResponse> marcarRealizado(@Path("id") String id);` }
+Call<AgendamentoResponse> marcarRealizado(@Path("id") String id);` },
+    { m: "patch", path: "/v1/agendamentos/{id}/link-online", auth: "Profissional/Admin", desc: "Definir link HTTPS para consulta virtual; profissional dono do agendamento ou Admin.", reqBody: { linkOnline: "https://consulta.exemplo.test/sala" }, resBody: { id: "<uuid>", linkOnline: "https://consulta.exemplo.test/sala" }, react: `await api("/v1/agendamentos/" + id + "/link-online", { method: "PATCH", body: { linkOnline: "https://consulta.exemplo.test/sala" } });`, android: `@PATCH("v1/agendamentos/{id}/link-online")\nCall<AgendamentoResponse> definirLinkOnline(@Path("id") String id, @Body LinkOnlineRequest body);` }
   ]}
 );
 

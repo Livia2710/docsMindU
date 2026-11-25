@@ -2,8 +2,8 @@ window.MINDU_ROUTE_GROUPS = window.MINDU_ROUTE_GROUPS || [];
 window.MINDU_ROUTE_GROUPS.push(
 { id: "auth", nome: "Autenticação", rotas: [
     { m: "post", path: "/v1/auth/login", auth: "Público", desc: "Login — normaliza o e-mail (trim + minúsculas) e retorna JWT válido por 1 hora; não há refresh token",
-      reqBody: { email: "cliente@empresa.com", senha: "Senha@1234" },
-      resBody: { token: "eyJhbGciOiJIUzI1NiJ9...", tipo: "CLIENTE" },
+      reqBody: { email: "cliente@empresa.com", senha: "<SENHA_DE_TESTE>" },
+      resBody: { token: "<JWT_DE_EXEMPLO>", tipo: "CLIENTE" },
       react: `const { token, tipo } = await api("/v1/auth/login", {
   method: "POST",
   body: { email, senha }
@@ -47,7 +47,7 @@ Call<MensagemResponse> solicitarRecuperacao(@Body SolicitarRecuperacaoRequest bo
 // MensagemResponse contém o campo String mensagem.
 api.solicitarRecuperacao(new SolicitarRecuperacaoRequest(email)).enqueue(callback);` },
     { m: "post", path: "/v1/auth/redefinir-senha", auth: "Público", desc: "Definir nova senha usando o token recebido no link por e-mail; sucesso retorna 204 No Content.",
-      reqBody: { token: "token-recebido-no-link", novaSenha: "NovaSenha123!" },
+      reqBody: { token: "<TOKEN_DE_REDEFINICAO>", novaSenha: "<NOVA_SENHA_DE_TESTE>" },
       resBody: null,
       react: `const token = new URLSearchParams(window.location.search).get("token");
 if (!token) throw new Error("Link de recuperação inválido");
@@ -69,7 +69,7 @@ api.redefinirSenha(new RedefinirSenhaRequest(token, novaSenha)).enqueue(callback
       android: `@GET("v1/auth/me")
 Call<MinhaContaResponse> minhaConta();` },
     { m: "put", path: "/v1/auth/senha", auth: "Autenticado", desc: "Trocar senha informando a senha atual",
-      reqBody: { senhaAtual: "Senha@1234", novaSenha: "NovaSenha@1234" },
+      reqBody: { senhaAtual: "<SENHA_ATUAL_DE_TESTE>", novaSenha: "<NOVA_SENHA_DE_TESTE>" },
       resBody: null,
       react: `await api("/v1/auth/senha", { method: "PUT", body: { senhaAtual, novaSenha } });`,
       android: `@PUT("v1/auth/senha")
